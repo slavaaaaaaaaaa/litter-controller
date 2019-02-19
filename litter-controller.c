@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include <pthread.h>
+
 #define AF_BASE 64
 #define AF_RS (AF_BASE + 0)
 #define AF_RW (AF_BASE + 1)
@@ -15,12 +17,32 @@
 #define AF_DB6 (AF_BASE + 6)
 #define AF_DB7 (AF_BASE + 7)
 
-static int lcdHandle;
+#define led 0
+#define button 1
+
+void *blinkLedForever(void *args) {
+    int time = (int) args;
+
+    while(1) {
+        digitalWrite(led, HIGH);
+        delay(time);
+        digitalWrite(led, LOW);
+        delay(time);
+    }
+}
+
+int blinkLed(int time) {
+    pthread_t tid;
+    pthread_create(&tid, NULL, blinkLedForever, (void *) time);
+
+    return tid;
+}
 
 int main(void) {
     wiringPiSetup();
     pcf8574Setup(AF_BASE, 0x27);
-    lcdHandle = lcdInit (2, 16, 4, AF_RS, AF_E, AF_DB4,AF_DB5,AF_DB6,AF_DB7, 0,0,0,0);
+
+    int lcdHandle = lcdInit (2, 16, 4, AF_RS, AF_E, AF_DB4,AF_DB5,AF_DB6,AF_DB7, 0,0,0,0);
 
     if (lcdHandle < 0) {
         fprintf (stderr, "lcdInit failed\n");
@@ -32,32 +54,28 @@ int main(void) {
 
     digitalWrite(AF_LED, 1); // Open back light
     digitalWrite(AF_RW, 0); // Set the R/Wall to a low level, LCD for the write state
-    lcdClear(lcdHandle); // Clear display
-    lcdPosition(lcdHandle, 0, 0); // Position cursor on the first line in the first column
-    lcdPuts(lcdHandle, "hi hello"); // Print the text on the LCD at the current cursor postion
-    lcdPosition(lcdHandle, 6, 1);
-    lcdPuts(lcdHandle, "pizza");
+    lcdClear(lcdHandle);
 
-    int val;
-    int led =       0;
-    int button =    1;
+    lcdPosition(lcdHandle, 0, 0);
+    lcdPuts(lcdHandle, "hi anna");
+    lcdPosition(lcdHandle, 2, 1);
+    lcdPuts(lcdHandle, "cat is on oven!");
 
     pinMode(button, INPUT);
     pinMode(led, OUTPUT);
 
-    while(1) {
-        val=digitalRead(button);
+    int blinkingLed = blinkLed(300);
 
-        if (val==HIGH)
-        {
-            if (val==HIGH)
-                digitalWrite(led, HIGH);
-        } else {
-            digitalWrite(led, LOW);
+    while(1) {
+        if (digitalRead(button)==HIGH) {
+            digitalWrite(led, HIGH);
         }
 
         delay(100);
     }
+
+    delay(900);
+    pthread_kill(blinkingLed, 15);
 
     return 0;
 }
