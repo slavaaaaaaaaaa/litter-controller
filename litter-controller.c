@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 #include <pthread.h>
+#include <signal.h>
 
 #define AF_BASE 64
 #define AF_RS (AF_BASE + 0)
@@ -58,7 +59,7 @@ int main(void) {
 
     lcdPosition(lcdHandle, 0, 0);
     lcdPuts(lcdHandle, "hi anna");
-    lcdPosition(lcdHandle, 2, 1);
+    lcdPosition(lcdHandle, 0, 1);
     lcdPuts(lcdHandle, "cat is on oven!");
 
     pinMode(button, INPUT);
@@ -69,13 +70,11 @@ int main(void) {
     while(1) {
         if (digitalRead(button)==HIGH) {
             digitalWrite(led, HIGH);
+            pthread_kill(blinkingLed, 15);
         }
 
         delay(100);
     }
-
-    delay(900);
-    pthread_kill(blinkingLed, 15);
 
     return 0;
 }
