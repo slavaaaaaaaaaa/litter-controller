@@ -24,30 +24,29 @@
 #define AF_DB5 (AF_BASE + 5)
 #define AF_DB6 (AF_BASE + 6)
 #define AF_DB7 (AF_BASE + 7)
-// Global lcd handle:
+
 static int lcdHandle;
 
-int main(void)
-{
-	int i;
-	wiringPiSetup();        //Initialise WiringPi
-	printf( "Welcome to Smraza\n");
-	printf( "Raspberry Pi LCD1602 with IIC test program\n" );
-	pcf8574Setup(AF_BASE,0x3F);
-	lcdHandle = lcdInit (2, 16, 4, AF_RS, AF_E, AF_DB4,AF_DB5,AF_DB6,AF_DB7, 0,0,0,0) ;
-	if (lcdHandle < 0)
-	{
-	fprintf (stderr, "lcdInit failed\n") ;
-	exit (EXIT_FAILURE) ;
+int main(void) {
+	wiringPiSetup();
+	pcf8574Setup(AF_BASE, 0x27);
+	lcdHandle = lcdInit (2, 16, 4, AF_RS, AF_E, AF_DB4,AF_DB5,AF_DB6,AF_DB7, 0,0,0,0);
+
+	if (lcdHandle < 0) {
+	        fprintf (stderr, "lcdInit failed\n");
+	        exit (EXIT_FAILURE);
 	}
-	for(i=0;i<8;i++)
-	pinMode(AF_BASE+i,OUTPUT); 	//Will expand the IO port as the output mode
-	digitalWrite(AF_LED,1); 	//Open back light
-	digitalWrite(AF_RW,0); 		//Set the R/Wall to a low level, LCD for the write state
-	lcdClear(lcdHandle); 		//Clear display
-	lcdPosition(lcdHandle,0,0);           //Position cursor on the first line in the first column
-	lcdPuts(lcdHandle, "Welcome to");  //Print the text on the LCD at the current cursor postion
-	lcdPosition(lcdHandle,8,1);          
-	lcdPuts(lcdHandle, "Smraza");
+
+	for(int i=0;i<8;i++)
+                pinMode(AF_BASE+i, OUTPUT); // Expand the IO port as the output mode
+
+	digitalWrite(AF_LED, 1); // Open back light
+	digitalWrite(AF_RW, 0); // Set the R/Wall to a low level, LCD for the write state
+	lcdClear(lcdHandle); // Clear display
+	lcdPosition(lcdHandle, 0, 0); // Position cursor on the first line in the first column
+	lcdPuts(lcdHandle, "hi hello"); // Print the text on the LCD at the current cursor postion
+	lcdPosition(lcdHandle, 6, 1);
+	lcdPuts(lcdHandle, "pizza");
+
 	return 0;
 }
