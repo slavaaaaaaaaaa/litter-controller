@@ -8,16 +8,13 @@
  */
 #include <wiringPi.h>
 #include <stdio.h>
-int main(void)
-{
-  printf( "Welcome to Smraza\n");
-  printf( "Raspberry Pi blink program\n" );
-  printf( "Press Ctrl+C to exit\n" );
-  wiringPiSetup() ;
-  pinMode (0, OUTPUT) ; 
-  for(;;) 
-  {
-    digitalWrite(0, HIGH) ; delay (500) ;
-    digitalWrite(0,  LOW) ; delay (500) ;
+
+int main(void) {
+  wiringPiSetup();
+  pinMode (0, OUTPUT);
+
+  for(;;) {
+    digitalWrite(0, HIGH); delay (500);
+    digitalWrite(0,  LOW); delay (500);
   }
 }
