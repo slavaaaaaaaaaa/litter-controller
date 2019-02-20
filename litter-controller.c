@@ -4,9 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <sys/time.h>
 
 #include <pthread.h>
 #include <signal.h>
+#include <string.h>
+#include <stdbool.h>
 
 #define AF_BASE 64
 #define AF_RS (AF_BASE + 0)
@@ -20,6 +23,11 @@
 
 #define led 0
 #define button 1
+#define trig 24
+#define echo 25
+
+static char *emptyLcdLine = "                ";
+static int lcdHandle;
 
 void *blinkLedForever(void *args) {
     int time = (int) args;
@@ -33,45 +41,93 @@ void *blinkLedForever(void *args) {
 }
 
 int blinkLed(int time) {
+    pinMode(led, OUTPUT);
+
     pthread_t tid;
     pthread_create(&tid, NULL, blinkLedForever, (void *) time);
 
     return tid;
 }
 
-int main(void) {
-    wiringPiSetup();
+float sonic(void) {
+    pinMode(echo, INPUT);
+    pinMode(trig, OUTPUT);
+    digitalWrite(trig, LOW);
+    delay(30);
+
+    digitalWrite(trig, HIGH);
+    delayMicroseconds(20);
+    digitalWrite(trig, LOW);
+
+    while(digitalRead(echo) == LOW);
+    long start = micros();
+
+    while(digitalRead(echo) == HIGH);
+    long travel = micros() - start;
+
+    return (float) travel / 58;
+}
+
+int lcdSetup(void) {
     pcf8574Setup(AF_BASE, 0x27);
 
-    int lcdHandle = lcdInit (2, 16, 4, AF_RS, AF_E, AF_DB4,AF_DB5,AF_DB6,AF_DB7, 0,0,0,0);
+    lcdHandle = lcdInit (2, 16, 4, AF_RS, AF_E, AF_DB4,AF_DB5,AF_DB6,AF_DB7, 0,0,0,0);
 
     if (lcdHandle < 0) {
         fprintf (stderr, "lcdInit failed\n");
         exit (EXIT_FAILURE);
     }
 
-    for(int i=0;i<8;i++)
-        pinMode(AF_BASE+i, OUTPUT); // Expand the IO port as the output mode
+    for (int i=0; i<8; i++)
+        pinMode(AF_BASE+i, OUTPUT);
 
-    digitalWrite(AF_LED, 1); // Open back light
-    digitalWrite(AF_RW, 0); // Set the R/Wall to a low level, LCD for the write state
-    lcdClear(lcdHandle);
+    digitalWrite(AF_LED, HIGH); // backlight
+    digitalWrite(AF_RW, LOW); // Set the R/Wall to a low level, LCD for the write state
 
-    lcdPosition(lcdHandle, 0, 0);
-    lcdPuts(lcdHandle, "hi anna");
-    lcdPosition(lcdHandle, 0, 1);
-    lcdPuts(lcdHandle, "cat is on oven!");
+    return lcdHandle;
+}
+
+int lcdWrite(bool clear, char *messageTop, char *messageBottom) {
+    if (clear)
+        lcdClear(lcdHandle);
+
+    if (strcmp(messageTop, "")) {
+        if (strlen(messageTop) > 16) {
+            printf("%s is too long; TODO scrolling", messageTop);
+        } else {
+            lcdPosition(lcdHandle, 0, 0);
+            lcdPuts(lcdHandle, emptyLcdLine);
+            lcdPosition(lcdHandle, 0, 0);
+            lcdPuts(lcdHandle, messageTop);
+        }
+    }
+
+    if (strcmp(messageBottom, "")) {
+        lcdPosition(lcdHandle, 0, 1);
+        lcdPuts(lcdHandle, emptyLcdLine);
+        lcdPosition(lcdHandle, 0, 1);
+        lcdPuts(lcdHandle, messageBottom);
+    }
+}
+
+int main(void) {
+    wiringPiSetup();
+    int lcdHandle = lcdSetup();
+    int blinkingLedTid = blinkLed(300);
+
+    lcdWrite(1, "hello", "pizza");
+    delay(1000);
+    lcdWrite(0, "anna this is very important and long!", "");
 
     pinMode(button, INPUT);
-    pinMode(led, OUTPUT);
-
-    int blinkingLed = blinkLed(300);
 
     while(1) {
         if (digitalRead(button)==HIGH) {
             digitalWrite(led, HIGH);
-            pthread_kill(blinkingLed, 15);
+            pthread_kill(blinkingLedTid, 15);
         }
+
+        printf("here we go: %.6f\n", sonic());
 
         delay(100);
     }
