@@ -11,8 +11,8 @@
 #include <stdio.h>
 #include <sys/time.h>
 
-#define Trig    4
-#define Echo    5
+#define Trig    24
+#define Echo    25
 
 void ultraInit(void)
 {

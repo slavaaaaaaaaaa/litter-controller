@@ -10,5 +10,9 @@ button:
 	SOURCE=button.c $(MAKE) compile
 	sudo ./a.out
 
+ultrasonic:
+	SOURCE=HCsr04.c $(MAKE) compile
+	sudo ./a.out
+
 compile:
 	gcc $(SOURCE) -lwiringPi -lwiringPiDev
