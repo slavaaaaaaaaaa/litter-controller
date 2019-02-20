@@ -44,7 +44,7 @@ int blinkLed(int time) {
     pinMode(led, OUTPUT);
 
     pthread_t tid;
-    pthread_create(&tid, NULL, blinkLedForever, (void *) time);
+    pthread_create(&tid, NULL, blinkLedForever, &time);
 
     return tid;
 }
@@ -108,29 +108,36 @@ int lcdWrite(bool clear, char *messageTop, char *messageBottom) {
         lcdPosition(lcdHandle, 0, 1);
         lcdPuts(lcdHandle, messageBottom);
     }
+
+    return 0;
 }
 
-int main(void) {
-    wiringPiSetup();
-    int lcdHandle = lcdSetup();
-    int blinkingLedTid = blinkLed(300);
-
-    lcdWrite(1, "hello", "pizza");
-    delay(1000);
-    lcdWrite(0, "anna this is very important and long!", "");
-
+void waitForButton(void) {
     pinMode(button, INPUT);
 
     while(1) {
         if (digitalRead(button)==HIGH) {
             digitalWrite(led, HIGH);
-            pthread_kill(blinkingLedTid, 15);
+            continue;
         }
 
         printf("here we go: %.6f\n", sonic());
 
         delay(100);
     }
+}
+
+int main(void) {
+    wiringPiSetup();
+    lcdHandle = lcdSetup();
+    int blinkingLedTid = blinkLed(300);
+
+    lcdWrite(1, "hello", "pizza");
+    delay(1000);
+
+    waitForButton();
+
+    pthread_kill(blinkingLedTid, 15);
 
     return 0;
 }

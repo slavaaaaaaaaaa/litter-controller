@@ -3,4 +3,4 @@ litter:
 	sudo ./a.out
 
 compile:
-	gcc $(SOURCE) -lwiringPi -lwiringPiDev -lpthread
+	gcc $(SOURCE) -lwiringPi -lwiringPiDev -lpthread -lcrypt -lm -lrt -Wall
