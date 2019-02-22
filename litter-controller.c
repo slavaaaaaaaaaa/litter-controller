@@ -23,6 +23,7 @@
 
 #define led 0
 #define button 1
+#define relay 23
 #define trig 24
 #define echo 25
 
@@ -128,15 +129,25 @@ int waitForButton(void) {
     }
 }
 
+void turnOnRelay(int time) {
+    printf("Turning on the relay for %dms\n", time);
+    pinMode(relay, OUTPUT);
+
+    digitalWrite(relay, LOW);
+    delay(time);
+    digitalWrite(relay, HIGH);
+}
+
 int main(void) {
     wiringPiSetup();
     lcdHandle = lcdSetup();
     pthread_t blinkingLedTid = blinkLed(300);
 
     lcdWrite(1, "hello", "pizza");
-    delay(1000);
 
     waitForButton();
+
+    turnOnRelay(500);
 
     pthread_cancel(blinkingLedTid);
 
