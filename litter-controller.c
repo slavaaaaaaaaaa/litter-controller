@@ -31,6 +31,7 @@ static int lcdHandle;
 
 void *blinkLedForever(void *args) {
     int time = (int) args;
+    printf("Blinking at interval %d\n", time);
 
     while(1) {
         digitalWrite(led, HIGH);
@@ -40,11 +41,11 @@ void *blinkLedForever(void *args) {
     }
 }
 
-int blinkLed(int time) {
+pthread_t blinkLed(int time) {
     pinMode(led, OUTPUT);
 
     pthread_t tid;
-    pthread_create(&tid, NULL, blinkLedForever, &time);
+    pthread_create(&tid, NULL, blinkLedForever, time);
 
     return tid;
 }
@@ -112,16 +113,16 @@ int lcdWrite(bool clear, char *messageTop, char *messageBottom) {
     return 0;
 }
 
-void waitForButton(void) {
+int waitForButton(void) {
     pinMode(button, INPUT);
 
     while(1) {
         if (digitalRead(button)==HIGH) {
             digitalWrite(led, HIGH);
-            continue;
+            return 0;
         }
 
-        printf("here we go: %.6f\n", sonic());
+        printf("Distance: %.6f\n", sonic());
 
         delay(100);
     }
@@ -130,14 +131,14 @@ void waitForButton(void) {
 int main(void) {
     wiringPiSetup();
     lcdHandle = lcdSetup();
-    int blinkingLedTid = blinkLed(300);
+    pthread_t blinkingLedTid = blinkLed(300);
 
     lcdWrite(1, "hello", "pizza");
     delay(1000);
 
     waitForButton();
 
-    pthread_kill(blinkingLedTid, 15);
+    pthread_cancel(blinkingLedTid);
 
     return 0;
 }
