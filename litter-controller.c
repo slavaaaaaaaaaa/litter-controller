@@ -21,35 +21,25 @@
 #define AF_DB6 (AF_BASE + 6)
 #define AF_DB7 (AF_BASE + 7)
 
-#define led 0
-#define button 1
-#define relay 23
+#define emptyingLed 27
+#define waitingLed 6
+#define dumpingLed 26
+#define errorLed 0
+
+#define emptyButton 23
+#define dumpButton 22
+
+#define clockwise 28
+#define counterclockwise 29
+
 #define trig 24
 #define echo 25
 
+#define emptyDistance 20
+#define poopingTime 60000
+
 static char *emptyLcdLine = "                ";
 static int lcdHandle;
-
-void *blinkLedForever(void *args) {
-    int time = (int) args;
-    printf("Blinking at interval %d\n", time);
-
-    while(1) {
-        digitalWrite(led, HIGH);
-        delay(time);
-        digitalWrite(led, LOW);
-        delay(time);
-    }
-}
-
-pthread_t blinkLed(int time) {
-    pinMode(led, OUTPUT);
-
-    pthread_t tid;
-    pthread_create(&tid, NULL, blinkLedForever, time);
-
-    return tid;
-}
 
 float sonic(void) {
     pinMode(echo, INPUT);
@@ -61,10 +51,10 @@ float sonic(void) {
     delayMicroseconds(20);
     digitalWrite(trig, LOW);
 
-    while(digitalRead(echo) == LOW);
+    while (digitalRead(echo) == LOW);
     long start = micros();
 
-    while(digitalRead(echo) == HIGH);
+    while (digitalRead(echo) == HIGH);
     long travel = micros() - start;
 
     return (float) travel / 58;
@@ -114,42 +104,95 @@ int lcdWrite(bool clear, char *messageTop, char *messageBottom) {
     return 0;
 }
 
-int waitForButton(void) {
-    pinMode(button, INPUT);
+void turnOnRelay(int direction, int time) {
+    printf("Turning on relay %d for %dms\n", direction, time);
+    pinMode(direction, OUTPUT);
+
+    digitalWrite(direction, LOW);
+    delay(time);
+    digitalWrite(direction, HIGH);
+}
+
+void dumpBox(char *source) {
+    time_t now;
+    time(&now);
+    struct tm *time = localtime(&now);
+    char buffer[26];
+    strftime(buffer, 26, "%a %H:%M:%S", time);
+    lcdWrite(1, "Last dump:", buffer);
+
+    digitalWrite(dumpingLed, HIGH);
+
+    turnOnRelay(clockwise, 1000);
+    turnOnRelay(counterclockwise, 1000);
+
+    digitalWrite(dumpingLed, LOW);
+}
+
+void emptyBox(char *source) {
+    time_t now;
+    time(&now);
+    struct tm *time = localtime(&now);
+    char buffer[26];
+    strftime(buffer, 26, "%a %H:%M:%S", time);
+    lcdWrite(1, "Last empty:", buffer);
+
+    digitalWrite(emptyingLed, HIGH);
+
+    turnOnRelay(counterclockwise, 3000);
+    turnOnRelay(clockwise, 4000);
+    turnOnRelay(counterclockwise, 1000);
+
+    digitalWrite(emptyingLed, LOW);
+}
+
+void waitForEvents(void) {
+    pinMode(emptyButton, INPUT);
+    pinMode(dumpButton, INPUT);
+
+    time_t now;
+
+    float previousDistance = sonic();
 
     while(1) {
-        if (digitalRead(button)==HIGH) {
-            digitalWrite(led, HIGH);
-            return 0;
+        time(&now);
+
+        if (digitalRead(emptyButton) == HIGH) {
+            printf("Button called to EMPTY box at %s\n", ctime(&now));
+            emptyBox("button");
+        } else if (digitalRead(dumpButton) == HIGH) {
+            printf("Button called to DUMP box at %s\n", ctime(&now));
+            dumpBox("button");
         }
 
-        printf("Distance: %.6f\n", sonic());
+        float newDistance = sonic();
+        printf("Current distance: %.5f\n", newDistance);
+
+        if ((emptyDistance - newDistance) > 5) {
+            printf("Distance delta caused to EMPTY box at %s\n", ctime(&now));
+            printf("Previous distance:  %.5f\n", previousDistance);
+            printf("New distance:       %.5f\n", newDistance);
+            printf("Distance delta:     %.5f\n", (newDistance-previousDistance));
+
+            digitalWrite(waitingLed, HIGH);
+            delay(poopingTime);
+            digitalWrite(waitingLed, LOW);
+
+            emptyBox("distance");
+            previousDistance = newDistance;
+        }
 
         delay(100);
     }
 }
 
-void turnOnRelay(int time) {
-    printf("Turning on the relay for %dms\n", time);
-    pinMode(relay, OUTPUT);
-
-    digitalWrite(relay, LOW);
-    delay(time);
-    digitalWrite(relay, HIGH);
-}
-
 int main(void) {
     wiringPiSetup();
     lcdHandle = lcdSetup();
-    pthread_t blinkingLedTid = blinkLed(300);
 
     lcdWrite(1, "hello", "pizza");
 
-    waitForButton();
-
-    turnOnRelay(500);
-
-    pthread_cancel(blinkingLedTid);
+    waitForEvents();
 
     return 0;
 }
