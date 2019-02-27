@@ -42,8 +42,6 @@ static char *emptyLcdLine = "                ";
 static int lcdHandle;
 
 float sonic(void) {
-    pinMode(echo, INPUT);
-    pinMode(trig, OUTPUT);
     digitalWrite(trig, LOW);
     delay(30);
 
@@ -106,7 +104,6 @@ int lcdWrite(bool clear, char *messageTop, char *messageBottom) {
 
 void turnOnRelay(int direction, int time) {
     printf("Turning on relay %d for %dms\n", direction, time);
-    pinMode(direction, OUTPUT);
 
     digitalWrite(direction, LOW);
     delay(time);
@@ -147,9 +144,6 @@ void emptyBox(char *source) {
 }
 
 void waitForEvents(void) {
-    pinMode(emptyButton, INPUT);
-    pinMode(dumpButton, INPUT);
-
     time_t now;
 
     float previousDistance = sonic();
@@ -158,10 +152,10 @@ void waitForEvents(void) {
         time(&now);
 
         if (digitalRead(emptyButton) == HIGH) {
-            printf("Button called to EMPTY box at %s\n", ctime(&now));
+            printf("Button called to EMPTY box at %s", ctime(&now));
             emptyBox("button");
         } else if (digitalRead(dumpButton) == HIGH) {
-            printf("Button called to DUMP box at %s\n", ctime(&now));
+            printf("Button called to DUMP box at %s", ctime(&now));
             dumpBox("button");
         }
 
@@ -169,10 +163,10 @@ void waitForEvents(void) {
         printf("Current distance: %.5f\n", newDistance);
 
         if ((emptyDistance - newDistance) > 5) {
-            printf("Distance delta caused to EMPTY box at %s\n", ctime(&now));
-            printf("Previous distance:  %.5f\n", previousDistance);
-            printf("New distance:       %.5f\n", newDistance);
-            printf("Distance delta:     %.5f\n", (newDistance-previousDistance));
+            printf("Distance delta caused to EMPTY box at %s", ctime(&now));
+            printf("\tPrevious distance:  %.5f\n", previousDistance);
+            printf("\tNew distance:       %.5f\n", newDistance);
+            printf("\tDistance delta:     %.5f\n", (newDistance - previousDistance));
 
             digitalWrite(waitingLed, HIGH);
             delay(poopingTime);
@@ -186,11 +180,28 @@ void waitForEvents(void) {
     }
 }
 
+void setPinModes() {
+    pinMode(emptyingLed,        OUTPUT);
+    pinMode(waitingLed,         OUTPUT);
+    pinMode(dumpingLed,         OUTPUT);
+    pinMode(errorLed,           OUTPUT);
+
+    pinMode(emptyButton,        INPUT);
+    pinMode(dumpButton,         INPUT);
+
+    pinMode(clockwise,          OUTPUT);
+    pinMode(counterclockwise,   OUTPUT);
+
+    pinMode(echo,               INPUT);
+    pinMode(trig,               OUTPUT);
+}
+
 int main(void) {
     wiringPiSetup();
     lcdHandle = lcdSetup();
+    setPinModes();
 
-    lcdWrite(1, "hello", "pizza");
+    lcdWrite(1, "henlo", "");
 
     waitForEvents();
 
