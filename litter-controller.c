@@ -33,6 +33,7 @@ static int clockwise =              28;
 static int counterclockwise =       29;
 static int trig =                   24;
 static int echo =                   25;
+static int irda =                   21;
 static int lcdWidth =               16;
 static int emptyDistance =          35;
 static int deltaDistance =          15;
@@ -185,6 +186,10 @@ void checkButtonState() {
         dumpBox("button");
 }
 
+void checkIrdaState() {
+    printf("irda:", );
+}
+
 void *waitForKitty(void *args) {
     digitalWrite(waitingLed, HIGH);
     kittyInside = TRUE;
@@ -227,6 +232,7 @@ void waitForEvents(void) {
 
     while(1) {
         checkButtonState();
+        checkIrdaState();
         previousDistance = checkSonicState(previousDistance);
 
         delay(100);
@@ -247,6 +253,8 @@ void setPins() {
 
     pinMode(echo,               INPUT);
     pinMode(trig,               OUTPUT);
+
+    pinMode(irda,               INPUT);
 
     digitalWrite(emptyingLed,       LOW);
     digitalWrite(waitingLed,        LOW);
@@ -271,6 +279,7 @@ int main(int argc, const char **argv) {
         OPT_INTEGER('C', "cclockwiseRelay",         &counterclockwise,  "counterclockwise relay pin"),
         OPT_INTEGER('t', "trig",                    &trig,              "ultrasonic sensor's trig pin"),
         OPT_INTEGER('h', "echo",                    &echo,              "ultrasonic sensor's echo pin"),
+        OPT_INTEGER('R', "irda",                    &irda,              "IRDA pin"),
         OPT_GROUP("Other options"),
         OPT_INTEGER('l', "lcdWidth",                &lcdWidth,          "character width of the LCD screen"),
         OPT_INTEGER('i', "emptyDistance",           &emptyDistance,     "distance (in cm) expected when empty"),
