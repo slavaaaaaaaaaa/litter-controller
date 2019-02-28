@@ -57,11 +57,6 @@ static const char *const usage[] = {
     NULL,
 };
 
-void debug(char *args) {
-    if (DEBUG > 0)
-        printf("DEBUG: %s\n", args);
-}
-
 float sonic(void) {
     digitalWrite(trig, LOW);
     delay(30);
@@ -208,7 +203,8 @@ float checkSonicState(float previousDistance) {
     time(&now);
     float newDistance = sonic();
 
-    printf("Current distance: %.5f\n", newDistance);
+    if (DEBUG > 0)
+        printf("Current distance: %.5f\n", newDistance);
 
     if (((newDistance > falseDistanceThreshold) || // if the distance is abnormally high, likely due to kitty sniffing the ultrasonic sensor...
         (newDistance < deltaDistance)) && // or if the distance is within limits, ...
