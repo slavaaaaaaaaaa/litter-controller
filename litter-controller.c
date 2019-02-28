@@ -42,6 +42,7 @@ static int DEBUG =              1;
 static char *emptyLcdLine = "                ";
 static int lcdHandle;
 
+pthread_mutex_t motorLock = PTHREAD_MUTEX_INITIALIZER;
 
 static const char *const usage[] = {
     "litter-controller [options] [[--] args]",
@@ -142,12 +143,30 @@ void dumpBox(char *source) {
 }
 
 void emptyBox(char *source) {
+    if (pthread_mutex_trylock(&motorLock)) {
+        time_t now;
+        time(&now);
+        struct tm *time = localtime(&now);
+        char buffer[26];
+        strftime(buffer, 26, "%a %H:%M:%S", time);
+        lcdWrite(1, "Last emptied:", buffer);
+
+        digitalWrite(emptyingLed, HIGH);
+        digitalWrite(waitingLed, LOW);
+
+        turnOnRelay(counterclockwise, 55);
+        turnOnRelay(clockwise, 65);
+        turnOnRelay(counterclockwise, 10);
+
+        digitalWrite(emptyingLed, LOW);
+        pthread_mutex_unlock(&motorLock);
+    } else {
+        printf("Motor already in use, %s trigger ignored!\n", source);
+    }
+}
+
+void checkButtonState() {
     time_t now;
-    time(&now);
-    struct tm *time = localtime(&now);
-    char buffer[26];
-    strftime(buffer, 26, "%a %H:%M:%S", time);
-    lcdWrite(1, "Last empty:", buffer);
 
     if (digitalRead(emptyButton) == HIGH) {
         printf("Button called to EMPTY box at %s", ctime(&now));
@@ -158,45 +177,47 @@ void emptyBox(char *source) {
     }
 }
 
-    turnOnRelay(counterclockwise, 3000);
-    turnOnRelay(clockwise, 4000);
-    turnOnRelay(counterclockwise, 1000);
+void waitForKitty(void) {
+    delay(poopingTime * 1000);
+    emptyBox("sonic");
 
-    digitalWrite(emptyingLed, LOW);
+    pthread_exit(NULL);
 }
 
-void waitForEvents(void) {
+float checkSonicState(float previousDistance) {
     time_t now;
+    float newDistance = sonic();
 
-    float previousDistance = sonic();
+    printf("Current distance: %.5f\n", newDistance);
 
-    while(1) {
-        time(&now);
-
-        if (digitalRead(emptyButton) == HIGH) {
-            printf("Button called to EMPTY box at %s", ctime(&now));
-            emptyBox("button");
-        } else if (digitalRead(dumpButton) == HIGH) {
-            printf("Button called to DUMP box at %s", ctime(&now));
-            dumpBox("button");
-        }
-
-        float newDistance = sonic();
-        printf("Current distance: %.5f\n", newDistance);
-
-        if ((emptyDistance - newDistance) > 5) {
-            printf("Distance delta caused to EMPTY box at %s", ctime(&now));
+    if (!kittyPresent) {
+        if ((emptyDistance - newDistance) > deltaDistance) {
+            printf("Distance delta caused to empty box at %s", ctime(&now));
             printf("\tPrevious distance:  %.5f\n", previousDistance);
             printf("\tNew distance:       %.5f\n", newDistance);
             printf("\tDistance delta:     %.5f\n", (newDistance - previousDistance));
 
             digitalWrite(waitingLed, HIGH);
-            delay(poopingTime);
-            digitalWrite(waitingLed, LOW);
 
-            emptyBox("distance");
-            previousDistance = newDistance;
-        }
+            pthread_t tid;
+            pthread_create(&tid, NULL, waitForKitty, NULL);
+
+            return -1;
+    } else
+        if ((emptyDistance - newDistance) < deltaDistance)
+    }
+
+    return newDistance;
+}
+
+void waitForEvents(void) {
+    float previousDistance = sonic();
+
+    while(1) {
+        checkButtonState();
+        previousDistance = checkSonicState(previousDistance);
+
+        if (previousDistance < 0)
 
         delay(100);
     }
