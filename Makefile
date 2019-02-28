@@ -15,7 +15,7 @@ $(OUT): $(wildcard ./*.c)
 
 test: $(OUT)
 	$(MAKE) -Cargparse/
-	LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$$(pwd)/argparse/ ./$(OUT)
+	LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$$(pwd)/argparse/ ./$(OUT) -d1
 
 install_argparse:
 	install argparse/libargparse.so $(PREFIX)/lib/

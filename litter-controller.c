@@ -23,24 +23,31 @@
 #define AF_DB6 (AF_BASE + 6)
 #define AF_DB7 (AF_BASE + 7)
 
-static int emptyingLed =        27;
-static int waitingLed =         6;
-static int dumpingLed =         26;
-static int errorLed =           0;
-static int emptyButton =        23;
-static int dumpButton =         22;
-static int clockwise =          28;
-static int counterclockwise =   29;
-static int trig =               24;
-static int echo =               25;
-static int lcdWidth =           16;
-static int emptyDistance =      35;
-static int deltaDistance =      15;
-static int poopingTime =        180;
-static int DEBUG =              1;
+static int emptyingLed =            27;
+static int waitingLed =             6;
+static int dumpingLed =             26;
+static int errorLed =               0;
+static int emptyButton =            23;
+static int dumpButton =             22;
+static int clockwise =              28;
+static int counterclockwise =       29;
+static int trig =                   24;
+static int echo =                   25;
+static int lcdWidth =               16;
+static int emptyDistance =          35;
+static int deltaDistance =          15;
+static int falseDistanceThreshold = 400; // if too close to the sensor, it reports ~2300. This is a safe number I guess
+static int kittySafetyDelta =       10;
+static int poopingTime =            180;
+static int ccwTurnTime =            55;
+static int cwTurnTime =             65;
+static int dumpTime =               10;
+static int DEBUG =                  0;
 
 static char *emptyLcdLine = "                ";
 static int lcdHandle;
+
+static bool kittyInside =       FALSE;
 
 pthread_mutex_t motorLock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -51,7 +58,7 @@ static const char *const usage[] = {
 };
 
 void debug(char *args) {
-    if (DEBUG)
+    if (DEBUG > 0)
         printf("DEBUG: %s\n", args);
 }
 
@@ -129,23 +136,34 @@ void turnOnRelay(int direction, int seconds) {
 void dumpBox(char *source) {
     time_t now;
     time(&now);
-    struct tm *time = localtime(&now);
-    char buffer[26];
-    strftime(buffer, 26, "%a %H:%M:%S", time);
-    lcdWrite(1, "Last dumped:", buffer);
+    printf("'%s' called to dump box at %s", source, ctime(&now));
 
-    digitalWrite(dumpingLed, HIGH);
+    int err = pthread_mutex_trylock(&motorLock);
+    if (err == 0) {
+        struct tm *time = localtime(&now);
+        char buffer[26];
+        strftime(buffer, 26, "%a %H:%M:%S", time);
+        lcdWrite(1, "Last dumped:", buffer);
 
-    turnOnRelay(clockwise, 10);
-    turnOnRelay(counterclockwise, 10);
+        digitalWrite(dumpingLed, HIGH);
 
-    digitalWrite(dumpingLed, LOW);
+        turnOnRelay(clockwise, dumpTime);
+        turnOnRelay(counterclockwise, dumpTime);
+
+        digitalWrite(dumpingLed, LOW);
+        pthread_mutex_unlock(&motorLock);
+    } else {
+        printf("Motor already in use, '%s' trigger to dump ignored due to %d!\n", source, err);
+    }
 }
 
 void emptyBox(char *source) {
-    if (pthread_mutex_trylock(&motorLock)) {
-        time_t now;
-        time(&now);
+    time_t now;
+    time(&now);
+    printf("'%s' called to empty box at %s", source, ctime(&now));
+
+    int err = pthread_mutex_trylock(&motorLock);
+    if (err == 0) {
         struct tm *time = localtime(&now);
         char buffer[26];
         strftime(buffer, 26, "%a %H:%M:%S", time);
@@ -154,57 +172,55 @@ void emptyBox(char *source) {
         digitalWrite(emptyingLed, HIGH);
         digitalWrite(waitingLed, LOW);
 
-        turnOnRelay(counterclockwise, 55);
-        turnOnRelay(clockwise, 65);
-        turnOnRelay(counterclockwise, 10);
+        turnOnRelay(counterclockwise, ccwTurnTime);
+        turnOnRelay(clockwise, cwTurnTime);
+        turnOnRelay(counterclockwise, dumpTime);
 
         digitalWrite(emptyingLed, LOW);
         pthread_mutex_unlock(&motorLock);
     } else {
-        printf("Motor already in use, %s trigger ignored!\n", source);
+        printf("Motor already in use, '%s' trigger to empty ignored due to %d!\n", source, err);
     }
 }
 
 void checkButtonState() {
-    time_t now;
-
-    if (digitalRead(emptyButton) == HIGH) {
-        printf("Button called to EMPTY box at %s", ctime(&now));
+    if (digitalRead(emptyButton) == HIGH)
         emptyBox("button");
-    } else if (digitalRead(dumpButton) == HIGH) {
-        printf("Button called to DUMP box at %s", ctime(&now));
+    else if (digitalRead(dumpButton) == HIGH)
         dumpBox("button");
-    }
 }
 
-void waitForKitty(void) {
-    delay(poopingTime * 1000);
-    emptyBox("sonic");
+void *waitForKitty(void *args) {
+    digitalWrite(waitingLed, HIGH);
+    kittyInside = TRUE;
 
+    delay(poopingTime * 1000);
+
+    emptyBox("sonic timeout");
+
+    printf("Admitting the kitty must have left by now\n");
+    kittyInside = FALSE;
     pthread_exit(NULL);
 }
 
 float checkSonicState(float previousDistance) {
     time_t now;
+    time(&now);
     float newDistance = sonic();
 
     printf("Current distance: %.5f\n", newDistance);
 
-    if (!kittyPresent) {
-        if ((emptyDistance - newDistance) > deltaDistance) {
-            printf("Distance delta caused to empty box at %s", ctime(&now));
-            printf("\tPrevious distance:  %.5f\n", previousDistance);
-            printf("\tNew distance:       %.5f\n", newDistance);
-            printf("\tDistance delta:     %.5f\n", (newDistance - previousDistance));
+    if (((newDistance > falseDistanceThreshold) || // if the distance is abnormally high, likely due to kitty sniffing the ultrasonic sensor...
+        (newDistance < deltaDistance)) && // or if the distance is within limits, ...
+            ! kittyInside) { // while there's no known kitty inside
+        printf("Distance delta caused to empty box at %s", ctime(&now));
 
-            digitalWrite(waitingLed, HIGH);
-
-            pthread_t tid;
-            pthread_create(&tid, NULL, waitForKitty, NULL);
-
-            return -1;
-    } else
-        if ((emptyDistance - newDistance) < deltaDistance)
+        pthread_t tid;
+        pthread_create(&tid, NULL, waitForKitty, NULL);
+    } else if ((newDistance < falseDistanceThreshold && // if the distance isn't abnormally high...
+        (newDistance > (deltaDistance + kittySafetyDelta))) && // and it's within a margin of error that it is empty...
+            kittyInside) { // and kitty was inside recently
+        emptyBox("sonic no kitty");
     }
 
     return newDistance;
@@ -216,8 +232,6 @@ void waitForEvents(void) {
     while(1) {
         checkButtonState();
         previousDistance = checkSonicState(previousDistance);
-
-        if (previousDistance < 0)
 
         delay(100);
     }
@@ -251,22 +265,24 @@ int main(int argc, const char **argv) {
     struct argparse_option options[] = {
         OPT_HELP(),
         OPT_GROUP("GPIO pins"),
-        OPT_INTEGER('e', "emptyingLed",     &emptyingLed,       "LED that glows when emptying"),
-        OPT_INTEGER('w', "waitingLed",      &waitingLed,        "LED that glows when waiting for exit"),
-        OPT_INTEGER('d', "dumpingLed",      &dumpingLed,        "LED that glows when dumping litter"),
-        OPT_INTEGER('r', "errorLed",        &errorLed,          "LED that glows on error"),
-        OPT_INTEGER('E', "emptyButton",     &emptyButton,       "button to initiate emptying"),
-        OPT_INTEGER('D', "dumpButton",      &dumpButton,        "button to initiate litter dumping"),
-        OPT_INTEGER('c', "clockwiseRelay",  &clockwise,         "clockwise relay pin"),
-        OPT_INTEGER('C', "cclockwiseRelay", &counterclockwise,  "counterclockwise relay pin"),
-        OPT_INTEGER('t', "trig",            &trig,              "ultrasonic sensor's trig pin"),
-        OPT_INTEGER('h', "echo",            &echo,              "ultrasonic sensor's echo pin"),
+        OPT_INTEGER('e', "emptyingLed",             &emptyingLed,       "LED that glows when emptying"),
+        OPT_INTEGER('w', "waitingLed",              &waitingLed,        "LED that glows when waiting for exit"),
+        OPT_INTEGER('u', "dumpingLed",              &dumpingLed,        "LED that glows when dumping litter"),
+        OPT_INTEGER('r', "errorLed",                &errorLed,          "LED that glows on error"),
+        OPT_INTEGER('E', "emptyButton",             &emptyButton,       "button to initiate emptying"),
+        OPT_INTEGER('D', "dumpButton",              &dumpButton,        "button to initiate litter dumping"),
+        OPT_INTEGER('c', "clockwiseRelay",          &clockwise,         "clockwise relay pin"),
+        OPT_INTEGER('C', "cclockwiseRelay",         &counterclockwise,  "counterclockwise relay pin"),
+        OPT_INTEGER('t', "trig",                    &trig,              "ultrasonic sensor's trig pin"),
+        OPT_INTEGER('h', "echo",                    &echo,              "ultrasonic sensor's echo pin"),
         OPT_GROUP("Other options"),
-        OPT_INTEGER('l', "lcdWidth",        &lcdWidth,          "character width of the LCD screen"),
-        OPT_INTEGER('i', "emptyDistance",   &emptyDistance,     "distance (in cm) expected when empty"),
-        OPT_INTEGER('I', "deltaDistance",   &deltaDistance,     "distance (in cm) delta to trigger emptying"),
-        OPT_INTEGER('p', "poopingTime",     &poopingTime,       "time (in seconds) to wait before emptying"),
-        OPT_INTEGER('g', "debug",           &DEBUG,             "whether to show debugging output"),
+        OPT_INTEGER('l', "lcdWidth",                &lcdWidth,          "character width of the LCD screen"),
+        OPT_INTEGER('i', "emptyDistance",           &emptyDistance,     "distance (in cm) expected when empty"),
+        OPT_INTEGER('I', "deltaDistance",           &deltaDistance,     "distance (in cm) delta to trigger emptying"),
+        OPT_INTEGER('T', "kittySafetyDelta",        &kittySafetyDelta,  "distance (in cm) delta tolerance to trigger emptying"),
+        OPT_INTEGER('f', "falseDistanceThreshold",  &falseDistanceThreshold,  "distance (in cm) that is too high to be true"),
+        OPT_INTEGER('p', "poopingTime",             &poopingTime,       "time (in seconds) to wait before emptying"),
+        OPT_INTEGER('d', "debug",                   &DEBUG,             "whether to use debugging timing values"),
         OPT_END(),
     };
 
@@ -275,13 +291,21 @@ int main(int argc, const char **argv) {
     argparse_describe(&argparse, "\nReplacement litter box controller.", "\nReplacement litter box controller expecting an RPI 3B+.");
     argc = argparse_parse(&argparse, argc, argv);
 
+    if (DEBUG > 0) {
+        printf("Running in debug mode with lowered times!\n");
+        poopingTime = 5;
+        ccwTurnTime = 5;
+        cwTurnTime =  6;
+        dumpTime =    1;
+    }
+
     wiringPiSetup();
     lcdHandle = lcdSetup();
     setPins();
 
-    lcdWrite(1, "henlo", "");
+    lcdWrite(1, "henlo", "   by slobber");
 
     waitForEvents();
 
-    return 0;
+    return 1;
 }
