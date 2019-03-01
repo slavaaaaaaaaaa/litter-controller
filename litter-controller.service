@@ -1,13 +1,13 @@
 [Unit]
 Description=Controller for a litter box
-After=network.target
+After=local-fs.target
 StartLimitIntervalSec=0
 
 [Service]
 Type=simple
 Restart=always
 RestartSec=1
-User=slava
+User=root
 ExecStart=/usr/local/bin/litter-controller
 
 [Install]
