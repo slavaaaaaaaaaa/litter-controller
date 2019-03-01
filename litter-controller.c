@@ -23,16 +23,16 @@
 #define AF_DB6 (AF_BASE + 6)
 #define AF_DB7 (AF_BASE + 7)
 
-static int emptyingLed =            27;
-static int waitingLed =             6;
-static int dumpingLed =             26;
+static int emptyingLed =            26;
+static int waitingLed =             3;
+static int dumpingLed =             0;
 static int errorLed =               0;
-static int emptyButton =            23;
-static int dumpButton =             22;
-static int clockwise =              28;
-static int counterclockwise =       29;
-static int trig =                   24;
-static int echo =                   25;
+static int emptyButton =            22;
+static int dumpButton =             7;
+static int clockwise =              21;
+static int counterclockwise =       6;
+static int trig =                   2;
+static int echo =                   1;
 static int lcdWidth =               16;
 static int emptyDistance =          35;
 static int deltaDistance =          15;
