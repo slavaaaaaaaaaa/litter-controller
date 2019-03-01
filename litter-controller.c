@@ -138,9 +138,10 @@ void dumpBox(char *source) {
         struct tm *time = localtime(&now);
         char buffer[26];
         strftime(buffer, 26, "%a %H:%M:%S", time);
-        lcdWrite(1, "Last dumped:", buffer);
+        lcdWrite(1, "Dumped", buffer);
 
         digitalWrite(dumpingLed, HIGH);
+        digitalWrite(waitingLed, LOW);
 
         turnOnRelay(clockwise, dumpTime);
         turnOnRelay(counterclockwise, dumpTime);
@@ -162,7 +163,8 @@ void emptyBox(char *source) {
         struct tm *time = localtime(&now);
         char buffer[26];
         strftime(buffer, 26, "%a %H:%M:%S", time);
-        lcdWrite(1, "Last emptied:", buffer);
+
+        lcdWrite(1, source, buffer);
 
         digitalWrite(emptyingLed, HIGH);
         digitalWrite(waitingLed, LOW);
@@ -180,9 +182,9 @@ void emptyBox(char *source) {
 
 void checkButtonState() {
     if (digitalRead(emptyButton) == HIGH)
-        emptyBox("button");
+        emptyBox("Button");
     else if (digitalRead(dumpButton) == HIGH)
-        dumpBox("button");
+        dumpBox("Button");
 }
 
 void *waitForKitty(void *args) {
@@ -191,7 +193,7 @@ void *waitForKitty(void *args) {
 
     delay(poopingTime * 1000);
 
-    emptyBox("sonic timeout");
+    emptyBox("Sonic timed out");
 
     printf("Admitting the kitty must have left by now\n");
     kittyInside = FALSE;
@@ -216,7 +218,7 @@ float checkSonicState(float previousDistance) {
     } else if ((newDistance < falseDistanceThreshold && // if the distance isn't abnormally high...
         (newDistance > (deltaDistance + kittySafetyDelta))) && // and it's within a margin of error that it is empty...
             kittyInside) { // and kitty was inside recently
-        emptyBox("sonic no kitty");
+        emptyBox("Sonic kitty left");
     }
 
     return newDistance;
@@ -287,7 +289,7 @@ int main(int argc, const char **argv) {
     argparse_describe(&argparse, "\nReplacement litter box controller.", "\nReplacement litter box controller expecting an RPI 3B+.");
     argc = argparse_parse(&argparse, argc, argv);
 
-    if (DEBUG > 0) {
+    if (DEBUG > 1) {
         printf("Running in debug mode with lowered times!\n");
         poopingTime = 5;
         ccwTurnTime = 5;
