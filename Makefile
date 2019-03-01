@@ -29,7 +29,7 @@ install: $(OUT)
 systemd_setup:
 	install litter-controller.service $(SYSTEMD_UNIT_DESTINATION)
 	systemctl enable litter-controller.service
-	systemctl start litter-controller.service
+	systemctl restart litter-controller.service
 
 uninstall:
 	$(RM) $(INSTALL_DIR)/$(OUT)
