@@ -6,6 +6,7 @@ FLAGS=$(DEPS) $(WARNINGS)
 COMPILER=gcc
 PREFIX?=/usr/local
 INSTALL_DIR?=$(PREFIX)/bin
+SYSTEMD_UNIT_DESTINATION?=/etc/systemd/system/
 
 .PHONY: test install uninstall clean
 
@@ -24,6 +25,11 @@ install_argparse:
 install: $(OUT)
 	install -d $(INSTALL_DIR)
 	install $(OUT) $(INSTALL_DIR)
+
+systemd_setup:
+	install litter-controller.service $(SYSTEMD_UNIT_DESTINATION)
+	systemctl enable litter-controller.service
+	systemctl start litter-controller.service
 
 uninstall:
 	$(RM) $(INSTALL_DIR)/$(OUT)
