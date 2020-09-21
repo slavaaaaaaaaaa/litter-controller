@@ -145,6 +145,7 @@ void dumpBox(char *source) {
         digitalWrite(waitingLed, LOW);
 
         turnOnRelay(clockwise, dumpTime);
+        delay(2000);
         turnOnRelay(counterclockwise, dumpTime);
 
         digitalWrite(dumpingLed, LOW);
@@ -161,8 +162,6 @@ void emptyBox(char *source) {
 
     int err = pthread_mutex_trylock(&motorLock);
     if (err == 0) {
-        delay(10000); // give kitty ten seconds to leave
-
         struct tm *time = localtime(&now);
         char buffer[26];
         strftime(buffer, 26, "%a %H:%M", time);
@@ -173,9 +172,9 @@ void emptyBox(char *source) {
         digitalWrite(waitingLed, LOW);
 
         turnOnRelay(counterclockwise, ccwTurnTime);
-        delay(2000);
+        delay(1000);
         turnOnRelay(clockwise, cwTurnTime);
-        delay(2000);
+        delay(1000);
         turnOnRelay(counterclockwise, dumpTime);
 
         digitalWrite(emptyingLed, LOW);
