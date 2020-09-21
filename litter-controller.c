@@ -138,8 +138,8 @@ void dumpBox(char *source) {
     if (err == 0) {
         struct tm *time = localtime(&now);
         char buffer[26];
-        strftime(buffer, 26, "%a %H:%M:%S", time);
-        lcdWrite(1, "Dumped", buffer);
+        strftime(buffer, 26, "%a %H:%M", time);
+        lcdWrite(1, "Litter dumped", buffer);
 
         digitalWrite(dumpingLed, HIGH);
         digitalWrite(waitingLed, LOW);
@@ -165,7 +165,7 @@ void emptyBox(char *source) {
 
         struct tm *time = localtime(&now);
         char buffer[26];
-        strftime(buffer, 26, "%a %H:%M:%S", time);
+        strftime(buffer, 26, "%a %H:%M", time);
 
         lcdWrite(1, source, buffer);
 
@@ -187,9 +187,9 @@ void emptyBox(char *source) {
 
 void checkButtonState() {
     if (digitalRead(emptyButton) == HIGH)
-        emptyBox("Button");
+        emptyBox("Button-pusher");
     else if (digitalRead(dumpButton) == HIGH)
-        dumpBox("Button");
+        dumpBox("Button-pusher");
 }
 
 void *waitForKitty(void *args) {
@@ -198,7 +198,7 @@ void *waitForKitty(void *args) {
 
     delay(poopingTime * 1000);
 
-    emptyBox("Sonic timed out");
+    emptyBox("Kitty was here");
 
     printf("Admitting the kitty must have left by now\n");
     kittyInside = FALSE;
