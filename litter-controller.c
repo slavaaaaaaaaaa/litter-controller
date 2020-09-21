@@ -219,10 +219,6 @@ float checkSonicState(float previousDistance) {
 
         pthread_t tid;
         pthread_create(&tid, NULL, waitForKitty, NULL);
-    } else if ((newDistance < falseDistanceThreshold && // if the distance isn't abnormally high...
-        (newDistance > (deltaDistance + kittySafetyDelta))) && // and it's within a margin of error that it is empty...
-            kittyInside) { // and kitty was inside recently
-        emptyBox("Sonic kitty left");
     }
 
     return newDistance;
