@@ -43,6 +43,7 @@ static int ccwTurnTime =            55;
 static int cwTurnTime =             65;
 static int dumpTime =               10;
 static int DEBUG =                  0;
+static char *VERSION =              "0.1.0";
 
 static char *emptyLcdLine = "                ";
 static int lcdHandle;
@@ -305,7 +306,7 @@ int main(int argc, const char **argv) {
     lcdHandle = lcdSetup();
     setPins();
 
-    lcdWrite(1, "henlo", "   by slobber");
+    lcdWrite(1, "litter control", VERSION);
 
     waitForEvents();
 
