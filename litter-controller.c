@@ -132,11 +132,14 @@ void turnOnRelay(int direction, int seconds) {
 void alignBox() {
     while(1) {
         float distance = sonic();
-        if ((distance > falseDistanceThreshold) || // if the distance is abnormally high, likely due to kitty sniffing the ultrasonic sensor...
+        printf("Aligning: sonic reports %.1f", distance);
+        if ((distance > falseDistanceThreshold) || // if the distance is abnormally high, likely due to us being too close to the sensor
             (distance < kittyInsideDistance)) { // or if it's actually too low
-            digitalWrite(counterclockwise, LOW);
+            digitalWrite(clockwise, HIGH); // make sure the other switch is properly set
+            digitalWrite(counterclockwise, LOW); // and spin until we can see litter
             delay(1000);
         } else {
+            delay(5000); // give it an extra few seconds to align to center, then stop spinning
             digitalWrite(counterclockwise, HIGH);
             break;
         }
