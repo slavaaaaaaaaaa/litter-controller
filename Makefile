@@ -14,6 +14,8 @@ $(OUT): $(wildcard ./*.c)
 	mkdir -p $(BUILD_DIR)
 	set -ex && $(COMPILER) $< $(FLAGS) -o $@
 
+deploy: $(out) install service
+
 test: $(OUT)
 	$(MAKE) -Cargparse/
 	LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$$(pwd)/argparse/ ./$(OUT) -d1
@@ -26,7 +28,7 @@ install: $(OUT)
 	install -d $(INSTALL_DIR)
 	install $(OUT) $(INSTALL_DIR)
 
-systemd_setup:
+service:
 	install litter-controller.service $(SYSTEMD_UNIT_DESTINATION)
 	systemctl enable litter-controller.service
 	systemctl restart litter-controller.service
