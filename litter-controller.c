@@ -43,7 +43,7 @@ static int ccwTurnTime =            55;
 static int cwTurnTime =             65;
 static int dumpTime =               8; // make this just too short to check sonic sensor clearance later
 static int DEBUG =                  0;
-static char *VERSION =              "0.2.0";
+static char *VERSION =              "0.2.1";
 
 static char *emptyLcdLine = "                ";
 static int lcdHandle;
@@ -192,10 +192,9 @@ void emptyBox(char *source, int delaySeconds) {
     struct tm *time = localtime(&now);
     char buffer[26];
     strftime(buffer, 26, "%a %H:%M", time);
-
-    print(0, "'%s' called to empty box at %s. Delaying %is", source, ctime(&now), delaySeconds);
     lcdWrite(1, source, buffer);
 
+    print(0, "'%s' called to empty box. Delaying %is", source, delaySeconds);
     delay((delaySeconds * 1000));
 
     int err = pthread_mutex_trylock(&motorLock);
