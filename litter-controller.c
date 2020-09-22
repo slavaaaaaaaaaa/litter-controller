@@ -198,9 +198,9 @@ void emptyBox(char *source) {
 
 void checkButtonState() {
     if (digitalRead(emptyButton) == HIGH)
-        emptyBox("Human pushed me on");
+        emptyBox("Human pushed me");
     else if (digitalRead(dumpButton) == HIGH)
-        dumpBox("Human pushed me on");
+        dumpBox("Human pushed me");
 }
 
 void *waitForKitty(void *args) {
@@ -209,7 +209,7 @@ void *waitForKitty(void *args) {
 
     delay(poopingTime * 1000);
 
-    emptyBox("Kitty was here on");
+    emptyBox("Kitty was here");
 
     kittyInside = FALSE;
     pthread_exit(NULL);
