@@ -174,19 +174,20 @@ void dumpBox(char *source) {
     }
 }
 
-void emptyBox(char *source) {
+void emptyBox(char *source, int delaySeconds) {
     time_t now;
     time(&now);
-    printf("'%s' called to empty box at %s", source, ctime(&now));
+    struct tm *time = localtime(&now);
+    char buffer[26];
+    strftime(buffer, 26, "%a %H:%M", time);
+
+    printf("'%s' called to empty box at %s. Delaying %is", source, ctime(&now), delaySeconds);
+    lcdWrite(1, source, buffer);
+
+    delay((delaySeconds * 1000));
 
     int err = pthread_mutex_trylock(&motorLock);
     if (err == 0) {
-        struct tm *time = localtime(&now);
-        char buffer[26];
-        strftime(buffer, 26, "%a %H:%M", time);
-
-        lcdWrite(1, source, buffer);
-
         digitalWrite(emptyingLed, HIGH);
         digitalWrite(waitingLed, LOW);
 
@@ -207,20 +208,18 @@ void emptyBox(char *source) {
 
 void checkButtonState() {
     if (digitalRead(emptyButton) == HIGH)
-        emptyBox("Human pushed me");
+        emptyBox("Human cycled me", 0);
     else if (digitalRead(dumpButton) == HIGH)
-        dumpBox("Human pushed me");
+        dumpBox("Human cycled me");
 }
 
 void *waitForKitty(void *distance) {
     digitalWrite(waitingLed, HIGH);
     kittyInside = TRUE;
 
-    delay(poopingTime * 1000);
-
     char *message[16];
-    sprintf(*message, "Felt it: %.1fmm", *((float *) distance));
-    emptyBox(*message);
+    sprintf(*message, "Kitty:    %.1fmm", *((float *) distance));
+    emptyBox(*message, poopingTime);
 
     kittyInside = FALSE;
     pthread_exit(NULL);
@@ -232,13 +231,11 @@ void checkSonicState() {
     float distance = sonic();
 
     if (DEBUG > 0)
-        printf("Current distance: %.5f\n", distance);
+        printf("Current distance: %.1f\n", distance);
 
     if (((distance > falseDistanceThreshold) || // if the distance is abnormally high, likely due to kitty sniffing the ultrasonic sensor...
         (distance < kittyInsideDistance)) && // or if the distance is within limits, ...
             ! kittyInside) { // while there's no known kitty inside
-        printf("Distance delta caused to empty box at %s", ctime(&now));
-
         pthread_t tid;
         pthread_create(&tid, NULL, waitForKitty, (void *) &distance);
     }
