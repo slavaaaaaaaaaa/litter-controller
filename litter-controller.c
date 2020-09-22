@@ -41,14 +41,14 @@ static int kittySafetyDelta =       10;
 static int poopingTime =            120;
 static int ccwTurnTime =            55;
 static int cwTurnTime =             65;
-static int dumpTime =               10;
+static int dumpTime =               8; // make this just too short to check sonic sensor clearance later
 static int DEBUG =                  0;
 static char *VERSION =              "0.1.0";
 
 static char *emptyLcdLine = "                ";
 static int lcdHandle;
 
-static bool kittyInside =       FALSE;
+static bool kittyInside = FALSE;
 
 pthread_mutex_t motorLock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -177,6 +177,18 @@ void emptyBox(char *source) {
         delay(1000);
         turnOnRelay(counterclockwise, dumpTime);
 
+        // check that we've spun enough to clear the sonic sensor
+        while(1) {
+            float distance = sonic();
+            if ((distance > falseDistanceThreshold) || // if the distance is abnormally high, likely due to kitty sniffing the ultrasonic sensor...
+                (distance < deltaDistance)) { // or if it's actually too low
+                delay(1000);
+                turnOnRelay(counterclockwise, 2); // rotate a little more to clear the sensor
+            } else {
+                break;
+            }
+        }
+
         digitalWrite(emptyingLed, LOW);
         pthread_mutex_unlock(&motorLock);
     } else {
@@ -186,9 +198,9 @@ void emptyBox(char *source) {
 
 void checkButtonState() {
     if (digitalRead(emptyButton) == HIGH)
-        emptyBox("Button-pusher");
+        emptyBox("Human pushed me on");
     else if (digitalRead(dumpButton) == HIGH)
-        dumpBox("Button-pusher");
+        dumpBox("Human pushed me on");
 }
 
 void *waitForKitty(void *args) {
@@ -197,9 +209,8 @@ void *waitForKitty(void *args) {
 
     delay(poopingTime * 1000);
 
-    emptyBox("Kitty was here");
+    emptyBox("Kitty was here on");
 
-    printf("Admitting the kitty must have left by now\n");
     kittyInside = FALSE;
     pthread_exit(NULL);
 }
