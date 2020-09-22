@@ -128,6 +128,21 @@ void turnOnRelay(int direction, int seconds) {
     digitalWrite(direction, HIGH);
 }
 
+// check that we've spun enough to clear the sonic sensor
+void alignBox() {
+    while(1) {
+        float distance = sonic();
+        if ((distance > falseDistanceThreshold) || // if the distance is abnormally high, likely due to kitty sniffing the ultrasonic sensor...
+            (distance < kittyInsideDistance)) { // or if it's actually too low
+            digitalWrite(counterclockwise, LOW);
+            delay(1000);
+        } else {
+            digitalWrite(counterclockwise, HIGH);
+            break;
+        }
+    }
+}
+
 void dumpBox(char *source) {
     time_t now;
     time(&now);
@@ -146,6 +161,8 @@ void dumpBox(char *source) {
         turnOnRelay(clockwise, dumpTime);
         delay(2000);
         turnOnRelay(counterclockwise, dumpTime);
+
+        alignBox();
 
         digitalWrite(dumpingLed, LOW);
         pthread_mutex_unlock(&motorLock);
@@ -176,17 +193,7 @@ void emptyBox(char *source) {
         delay(1000);
         turnOnRelay(counterclockwise, dumpTime);
 
-        // check that we've spun enough to clear the sonic sensor
-        while(1) {
-            float distance = sonic();
-            if ((distance > falseDistanceThreshold) || // if the distance is abnormally high, likely due to kitty sniffing the ultrasonic sensor...
-                (distance < deltaDistance)) { // or if it's actually too low
-                delay(1000);
-                turnOnRelay(counterclockwise, 2); // rotate a little more to clear the sensor
-            } else {
-                break;
-            }
-        }
+        alignBox();
 
         digitalWrite(emptyingLed, LOW);
         pthread_mutex_unlock(&motorLock);
@@ -307,6 +314,8 @@ int main(int argc, const char **argv) {
     setPins();
 
     lcdWrite(1, "litter control", VERSION);
+
+    alignBox();
 
     waitForEvents();
 
