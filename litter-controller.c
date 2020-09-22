@@ -209,13 +209,15 @@ void checkButtonState() {
         dumpBox("Human pushed me");
 }
 
-void *waitForKitty(void *args) {
+void *waitForKitty(void *distance) {
     digitalWrite(waitingLed, HIGH);
     kittyInside = TRUE;
 
     delay(poopingTime * 1000);
 
-    emptyBox("Kitty was here");
+    char *message[16];
+    sprintf(*message, "Felt it: %.1fmm", *((float *) distance));
+    emptyBox(*message);
 
     kittyInside = FALSE;
     pthread_exit(NULL);
@@ -235,7 +237,7 @@ void checkSonicState() {
         printf("Distance delta caused to empty box at %s", ctime(&now));
 
         pthread_t tid;
-        pthread_create(&tid, NULL, waitForKitty, NULL);
+        pthread_create(&tid, NULL, waitForKitty, (void *) &distance);
     }
 }
 
