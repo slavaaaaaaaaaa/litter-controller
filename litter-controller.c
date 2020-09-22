@@ -42,7 +42,7 @@ static int ccwTurnTime =            55;
 static int cwTurnTime =             65;
 static int dumpTime =               8; // make this just too short to check sonic sensor clearance later
 static int DEBUG =                  0;
-static char *VERSION =              "0.1.0";
+static char *VERSION =              "0.2.0";
 
 static char *emptyLcdLine = "                ";
 static int lcdHandle;
@@ -208,7 +208,7 @@ void emptyBox(char *source, int delaySeconds) {
 
 void checkButtonState() {
     if (digitalRead(emptyButton) == HIGH)
-        emptyBox("Human cycled me", 0);
+        emptyBox("Human cycled me", 0); // TODO: kill thread started by sonic, if that's the case. Or let it die because mutex is taken?
     else if (digitalRead(dumpButton) == HIGH)
         dumpBox("Human cycled me");
 }
