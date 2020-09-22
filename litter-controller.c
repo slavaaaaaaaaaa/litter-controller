@@ -229,7 +229,7 @@ void *waitForKitty(void *distance) {
     kittyInside = TRUE;
 
     char *message[16];
-    sprintf(*message, "Kitty:    %.1fmm", *((float *) distance));
+    sprintf(*message, "Kitty:      %.1f", *((float *) distance));
     emptyBox(*message, poopingTime);
 
     kittyInside = FALSE;
