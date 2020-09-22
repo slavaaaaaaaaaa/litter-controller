@@ -1,6 +1,7 @@
 #include <wiringPi.h>
 #include <pcf8574.h>
 #include <lcd.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -57,6 +58,17 @@ static const char *const usage[] = {
     NULL,
 };
 
+void print(int level, const char *fmt, ...) {
+    if (level >= DEBUG) {
+        va_list args;
+        va_start(args, fmt);
+        vprintf(fmt, args);
+        va_end(args);
+        printf("\n");
+        fflush(stdout);
+    }
+}
+
 float sonic(void) {
     digitalWrite(trig, LOW);
     delay(30);
@@ -80,8 +92,8 @@ int lcdSetup(void) {
     lcdHandle = lcdInit (2, 16, 4, AF_RS, AF_E, AF_DB4,AF_DB5,AF_DB6,AF_DB7, 0,0,0,0);
 
     if (lcdHandle < 0) {
-        fprintf (stderr, "lcdInit failed\n");
-        exit (EXIT_FAILURE);
+        print(0, "lcdInit failed");
+        exit(EXIT_FAILURE);
     }
 
     for (int i=0; i<8; i++)
@@ -99,7 +111,7 @@ int lcdWrite(bool clear, char *messageTop, char *messageBottom) {
 
     if (strcmp(messageTop, "")) {
         if (strlen(messageTop) > lcdWidth) {
-            printf("%s is too long; TODO scrolling", messageTop);
+            print(0, "%s is too long; TODO scrolling", messageTop);
         } else {
             lcdPosition(lcdHandle, 0, 0);
             lcdPuts(lcdHandle, emptyLcdLine);
@@ -110,7 +122,7 @@ int lcdWrite(bool clear, char *messageTop, char *messageBottom) {
 
     if (strcmp(messageBottom, "")) {
         if (strlen(messageTop) > lcdWidth) {
-            printf("%s is too long; TODO scrolling", messageBottom);
+            print(0, "%s is too long; TODO scrolling", messageBottom);
         } else {
             lcdPosition(lcdHandle, 0, 1);
             lcdPuts(lcdHandle, emptyLcdLine);
@@ -132,7 +144,7 @@ void turnOnRelay(int direction, int seconds) {
 void alignBox() {
     while(1) {
         float distance = sonic();
-        printf("Aligning: sonic reports %.1f", distance);
+        print(0, "Aligning: sonic reports %.1f", distance);
         if ((distance > falseDistanceThreshold) || // if the distance is abnormally high, likely due to us being too close to the sensor
             (distance < kittyInsideDistance)) { // or if it's actually too low
             digitalWrite(clockwise, HIGH); // make sure the other switch is properly set
@@ -149,7 +161,7 @@ void alignBox() {
 void dumpBox(char *source) {
     time_t now;
     time(&now);
-    printf("'%s' called to dump box at %s", source, ctime(&now));
+    print(0, "'%s' called to dump box at %s", source, ctime(&now));
 
     int err = pthread_mutex_trylock(&motorLock);
     if (err == 0) {
@@ -170,7 +182,7 @@ void dumpBox(char *source) {
         digitalWrite(dumpingLed, LOW);
         pthread_mutex_unlock(&motorLock);
     } else {
-        printf("Motor already in use, '%s' trigger to dump ignored due to %d!\n", source, err);
+        print(0, "Motor already in use, '%s' trigger to dump ignored due to %d!", source, err);
     }
 }
 
@@ -181,7 +193,7 @@ void emptyBox(char *source, int delaySeconds) {
     char buffer[26];
     strftime(buffer, 26, "%a %H:%M", time);
 
-    printf("'%s' called to empty box at %s. Delaying %is", source, ctime(&now), delaySeconds);
+    print(0, "'%s' called to empty box at %s. Delaying %is", source, ctime(&now), delaySeconds);
     lcdWrite(1, source, buffer);
 
     delay((delaySeconds * 1000));
@@ -202,7 +214,7 @@ void emptyBox(char *source, int delaySeconds) {
         digitalWrite(emptyingLed, LOW);
         pthread_mutex_unlock(&motorLock);
     } else {
-        printf("Motor already in use, '%s' trigger to empty ignored due to %d!\n", source, err);
+        print(0, "Motor already in use, '%s' trigger to empty ignored due to %d!", source, err);
     }
 }
 
@@ -231,7 +243,7 @@ void checkSonicState() {
     float distance = sonic();
 
     if (DEBUG > 0)
-        printf("Current distance: %.1f\n", distance);
+        print(9, "Current distance: %.1f", distance);
 
     if (((distance > falseDistanceThreshold) || // if the distance is abnormally high, likely due to kitty sniffing the ultrasonic sensor...
         (distance < kittyInsideDistance)) && // or if the distance is within limits, ...
@@ -304,7 +316,7 @@ int main(int argc, const char **argv) {
     argc = argparse_parse(&argparse, argc, argv);
 
     if (DEBUG > 1) {
-        printf("Running in debug mode with lowered times!\n");
+        print(0, "Running in debug mode with lowered times!");
         poopingTime = 5;
         ccwTurnTime = 5;
         cwTurnTime =  6;
