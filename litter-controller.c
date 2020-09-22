@@ -35,9 +35,8 @@ static int trig =                   2;
 static int echo =                   1;
 static int lcdWidth =               16;
 static int emptyDistance =          45;
-static int deltaDistance =          35;
+static int kittyInsideDistance =    35;
 static int falseDistanceThreshold = 400; // if too close to the sensor, it reports ~2300. This is a safe number I guess
-static int kittySafetyDelta =       10;
 static int poopingTime =            120;
 static int ccwTurnTime =            55;
 static int cwTurnTime =             65;
@@ -215,32 +214,28 @@ void *waitForKitty(void *args) {
     pthread_exit(NULL);
 }
 
-float checkSonicState(float previousDistance) {
+void checkSonicState() {
     time_t now;
     time(&now);
-    float newDistance = sonic();
+    float distance = sonic();
 
     if (DEBUG > 0)
-        printf("Current distance: %.5f\n", newDistance);
+        printf("Current distance: %.5f\n", distance);
 
-    if (((newDistance > falseDistanceThreshold) || // if the distance is abnormally high, likely due to kitty sniffing the ultrasonic sensor...
-        (newDistance < deltaDistance)) && // or if the distance is within limits, ...
+    if (((distance > falseDistanceThreshold) || // if the distance is abnormally high, likely due to kitty sniffing the ultrasonic sensor...
+        (distance < kittyInsideDistance)) && // or if the distance is within limits, ...
             ! kittyInside) { // while there's no known kitty inside
         printf("Distance delta caused to empty box at %s", ctime(&now));
 
         pthread_t tid;
         pthread_create(&tid, NULL, waitForKitty, NULL);
     }
-
-    return newDistance;
 }
 
 void waitForEvents(void) {
-    float previousDistance = sonic();
-
     while(1) {
         checkButtonState();
-        previousDistance = checkSonicState(previousDistance);
+        checkSonicState();
 
         delay(100);
     }
@@ -287,9 +282,8 @@ int main(int argc, const char **argv) {
         OPT_GROUP("Other options"),
         OPT_INTEGER('l', "lcdWidth",                &lcdWidth,          "character width of the LCD screen"),
         OPT_INTEGER('i', "emptyDistance",           &emptyDistance,     "distance (in cm) expected when empty"),
-        OPT_INTEGER('I', "deltaDistance",           &deltaDistance,     "distance (in cm) delta to trigger emptying"),
-        OPT_INTEGER('T', "kittySafetyDelta",        &kittySafetyDelta,  "distance (in cm) delta tolerance to trigger emptying"),
-        OPT_INTEGER('f', "falseDistanceThreshold",  &falseDistanceThreshold,  "distance (in cm) that is too high to be true"),
+        OPT_INTEGER('I', "kittyInsideDistance",     &kittyInsideDistance, "distance (in cm) to trigger emptying"),
+        OPT_INTEGER('f', "falseDistanceThreshold",  &falseDistanceThreshold, "distance (in cm) that is too high to be true"),
         OPT_INTEGER('p', "poopingTime",             &poopingTime,       "time (in seconds) to wait before emptying"),
         OPT_INTEGER('d', "debug",                   &DEBUG,             "whether to use debugging timing values"),
         OPT_END(),
