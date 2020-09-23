@@ -20,9 +20,13 @@ test: $(OUT)
 	$(MAKE) -Cargparse/
 	LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$$(pwd)/argparse/ ./$(OUT) -d1
 
-install_argparse:
+deps:
+	git submodule update --init
+	cd wiringPi; ./build; cd ../
+	$(MAKE) -Cargparse/
 	install argparse/libargparse.so $(PREFIX)/lib/
 	install argparse/argparse.h $(PREFIX)/include/
+	ldconfig
 
 install: $(OUT)
 	install -d $(INSTALL_DIR)
@@ -35,6 +39,9 @@ service:
 
 rpi-config:
 	install config.txt /boot/
+	echo i2c-dev >> /etc/modules-load.d/modules.conf
+	usermod -a -G i2c pi
+	modprobe i2c-dev
 
 uninstall:
 	$(RM) $(INSTALL_DIR)/$(OUT)
