@@ -48,9 +48,8 @@ static char *VERSION =              "0.2.1";
 static char *emptyLcdLine = "                ";
 static int lcdHandle;
 
-static bool kittyInside = FALSE;
-
 pthread_mutex_t motorLock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t kittyInside = PTHREAD_MUTEX_INITIALIZER;
 
 static const char *const usage[] = {
     "litter-controller [options] [[--] args]",
@@ -226,7 +225,6 @@ void checkButtonState() {
 
 void *waitForKitty(void *distance) {
     digitalWrite(waitingLed, HIGH);
-    kittyInside = TRUE;
 
     char *message[16];
     print(9, "Compiling message to display, distance %.1f", *distance);
@@ -234,13 +232,11 @@ void *waitForKitty(void *distance) {
     print(9, "Emptying box");
     emptyBox(*message, poopingTime);
 
-    kittyInside = FALSE;
+    pthread_mutex_unlock(&kittyInside);
     pthread_exit(NULL);
 }
 
 void checkSonicState() {
-    time_t now;
-    time(&now);
     float distance = sonic();
 
     if (DEBUG > 0)
@@ -248,7 +244,7 @@ void checkSonicState() {
 
     if (((distance > falseDistanceThreshold) || // if the distance is abnormally high, likely due to kitty sniffing the ultrasonic sensor...
         (distance < kittyInsideDistance)) && // or if the distance is within limits, ...
-            ! kittyInside) { // while there's no known kitty inside
+            ! pthread_mutex_trylock(&kittyInside)) { // while there's no known kitty inside
         pthread_t tid;
         print(9, "Splitting off into a waiting thread");
         pthread_create(&tid, NULL, waitForKitty, (void *) &distance);
