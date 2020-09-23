@@ -1,6 +1,6 @@
-# Replacement Raspberry Pi litterbox controller
+# Litter Robot 3 homebrew controller
 
-I have one of the [five-hundred-dollar Litter Robots](https://www.litter-robot.com/litter-robot-3.html) that seem to have the worst logic. My tiny five-pound kitty is most often ignored, while the fat one doesn't trigger a cycle upon his leaving it. I figured I'd put together a replacement board for it, with a Raspberry Pi 3B+ and a few sensors.
+Spin the feces for the good of the kitties
 
 <!-- toc -->
 
@@ -19,6 +19,20 @@ Absolutely no expressed or implied warranties are attached to your using this co
 
 Issue and pull request submissions are welcome.
 
+## Problem statement
+
+My wife and I dropped over 500$ on a [Litter Robot 3](https://www.litter-robot.com/litter-robot-3.html) nearly three years ago. For some reason we got the extra one year of warranty - without thinking that there's no way we'd be willing to pay for its return shipping.
+
+At first it was fine, but the logic has been in decline over the last year or so. Issues we've run into include but aren't limited to:
+
+- Blue light blinks: means the tray is full (but it's not). Cleaning the sensors may or may not help. Turning on and off may or may not help.
+- Yellow light blinks: something else is broken
+- Yellow light blinks very fast: anti-pinch logic is broken
+
+At some point, we realized it fails to cycle in the dark, when it turns on the blue illumination. I suspected a power issue but didn't have the time to look into it. Instead, I finalized this project.
+
+In the final assembly, it was apparent that the original Litter Robot power supply (15V 1A) may be at fault: it was unable to drive the motor when connected directly, while a random other one (12V 1A) had no issues in that arena.
+
 ## Usage
 
 1. Read [`Makefile`](Makefile) and make sure you know what you're running in these steps
@@ -31,7 +45,7 @@ Issue and pull request submissions are welcome.
 
 Or, `make deploy` covers everything necessary to update after the initial steps have been completed.
 
-### Items used
+## Items used
 
 Item | Comments | Cost
 -|-|-
@@ -52,17 +66,13 @@ Item | Comments | Cost
 [Feather wand](https://www.amazon.com/gp/product/B00LZUCIL8) | The least you can do for taking your cats' toilet away for weeks is play with them | 10$
 Total | | 286$
 
-### Hardware layouts
+## Hardware layouts
 
 TODO
 
 ## Status
 
-This is very much work in progress - code is close to done, hardware is practically ready on the breadboard, but nothing is hooked up to the actual litter box.
-
-## Contributions
-
-...are welcome, if you care.
+This code is relatively stable, the hardware is finished, installed and is in use at home. So, basically, I run this in production.
 
 ## Licensing
 
