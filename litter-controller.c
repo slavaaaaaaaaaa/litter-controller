@@ -229,7 +229,9 @@ void *waitForKitty(void *distance) {
     kittyInside = TRUE;
 
     char *message[16];
+    print(9, "Compiling message to display, distance %.1f", *distance);
     sprintf(*message, "Kitty:      %.1f", *((float *) distance));
+    print(9, "Emptying box");
     emptyBox(*message, poopingTime);
 
     kittyInside = FALSE;
@@ -242,12 +244,13 @@ void checkSonicState() {
     float distance = sonic();
 
     if (DEBUG > 0)
-        print(9, "Current distance: %.1f", distance);
+        print(8, "Current distance: %.1f", distance);
 
     if (((distance > falseDistanceThreshold) || // if the distance is abnormally high, likely due to kitty sniffing the ultrasonic sensor...
         (distance < kittyInsideDistance)) && // or if the distance is within limits, ...
             ! kittyInside) { // while there's no known kitty inside
         pthread_t tid;
+        print(9, "Splitting off into a waiting thread");
         pthread_create(&tid, NULL, waitForKitty, (void *) &distance);
     }
 }
@@ -320,6 +323,8 @@ int main(int argc, const char **argv) {
         ccwTurnTime = 5;
         cwTurnTime =  6;
         dumpTime =    1;
+    } else {
+        alignBox();
     }
 
     wiringPiSetup();
@@ -327,8 +332,6 @@ int main(int argc, const char **argv) {
     setPins();
 
     lcdWrite(1, "litter control", VERSION);
-
-    alignBox();
 
     waitForEvents();
 

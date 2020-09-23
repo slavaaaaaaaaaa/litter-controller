@@ -17,7 +17,7 @@ $(OUT): $(wildcard ./*.c)
 deploy: $(out) install service
 
 test: $(OUT)
-	./$(OUT) -d9
+	./$(OUT) -d9 -I53
 
 deps:
 	git submodule update --init
