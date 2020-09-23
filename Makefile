@@ -38,7 +38,8 @@ service:
 
 rpi-config:
 	install config.txt /boot/
-	echo i2c-dev >> /etc/modules-load.d/modules.conf
+	touch /boot/ssh
+	echo i2c-dev > /etc/modules-load.d/i2c.conf
 	usermod -a -G i2c pi
 	modprobe i2c-dev
 
