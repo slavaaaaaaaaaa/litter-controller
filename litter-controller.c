@@ -2,6 +2,7 @@
 #include <pcf8574.h>
 #include <lcd.h>
 #include <stdarg.h>
+#include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -48,8 +49,8 @@ static char *VERSION =              "0.2.2";
 static char *emptyLcdLine = "                ";
 static int lcdHandle;
 
+atomic_bool kittyInside = FALSE;
 pthread_mutex_t motorLock = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t kittyInside = PTHREAD_MUTEX_INITIALIZER;
 
 static const char *const usage[] = {
     "litter-controller [options] [[--] args]",
@@ -224,6 +225,7 @@ void checkButtonState() {
 }
 
 void *waitForKitty(void *_distance) {
+    kittyInside = TRUE;
     digitalWrite(waitingLed, HIGH);
 
     char message[16];
@@ -233,7 +235,7 @@ void *waitForKitty(void *_distance) {
     print(9, "Emptying box");
     emptyBox(message, poopingTime);
 
-    pthread_mutex_unlock(&kittyInside);
+    kittyInside = FALSE;
     pthread_exit(NULL);
 }
 
@@ -245,7 +247,7 @@ void checkSonicState() {
 
     if (((distance > falseDistanceThreshold) || // if the distance is abnormally high, likely due to kitty sniffing the ultrasonic sensor...
         (distance < kittyInsideDistance)) && // or if the distance is within limits, ...
-            ! pthread_mutex_trylock(&kittyInside)) { // while there's no known kitty inside
+            ! kittyInside) { // while there's no known kitty inside
         pthread_t tid;
         print(9, "Splitting off into a waiting thread");
         pthread_create(&tid, NULL, waitForKitty, (void *) &distance);
