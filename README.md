@@ -4,11 +4,12 @@ Spin the feces for the good of the kitties
 
 <!-- toc -->
 
+- [Warranties and support](#warranties-and-support)
+- [Problem statement](#problem-statement)
 - [Usage](#usage)
-    * [Necessary purchases](#necessary-purchases)
-    * [Hardware layouts](#hardware-layouts)
+- [Items used](#items-used)
+- [Hardware layouts](#hardware-layouts)
 - [Status](#status)
-- [Contributions](#contributions)
 - [Licensing](#licensing)
 
 <!-- tocstop -->
