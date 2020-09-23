@@ -1,6 +1,6 @@
 [submodule "wiringPi"]
 	path = wiringPi
-	url = git@github.com:smaslennikov/wiringPi.git
+	url = https://github.com/smaslennikov/wiringPi.git
 [submodule "argparse"]
 	path = argparse
-	url = git@github.com:cofyc/argparse.git
+	url = https://github.com/cofyc/argparse.git
