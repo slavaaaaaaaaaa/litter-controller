@@ -17,8 +17,7 @@ $(OUT): $(wildcard ./*.c)
 deploy: $(out) install service
 
 test: $(OUT)
-	$(MAKE) -Cargparse/
-	LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$$(pwd)/argparse/ ./$(OUT) -d1
+	./$(OUT) -d9
 
 deps:
 	git submodule update --init
