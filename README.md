@@ -77,7 +77,4 @@ This code is relatively stable, the hardware is finished, installed and is in us
 
 ## Licensing
 
- * [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0): [`./LICENSE-APACHE`](LICENSE-APACHE)
- * [MIT License](https://opensource.org/licenses/MIT): [`./LICENSE-MIT`](LICENSE-MIT)
-
-Licensed at your option of either of the above licenses.
+Code, documentation and everything else in this repository are licensed via [Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/legalcode)
