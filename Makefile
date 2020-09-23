@@ -42,6 +42,9 @@ rpi-config:
 	usermod -a -G i2c pi
 	modprobe i2c-dev
 
+logs:
+	journalctl -fu litter-controller
+
 uninstall:
 	$(RM) $(INSTALL_DIR)/$(OUT)
 
