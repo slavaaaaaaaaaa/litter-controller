@@ -2,3 +2,69 @@
 ---
 
 @import "jekyll-theme-midnight";
+
+.crossfade > figure {
+  animation: imageAnimation 60s linear infinite 0s;
+  backface-visibility: hidden;
+  background-size: cover;
+  background-position: center center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  color: #252525;
+  height: 100%;
+  left: 0px;
+  opacity: 30;
+  position: absolute;
+  top: 0px;
+  width: 100%;
+  z-index: 0;
+}
+
+.crossfade > figure:nth-child(1) {
+  background-image: url('https://raw.githubusercontent.com/smaslennikov/litter-controller/master/backgrounds/1.jpg');
+}
+
+.crossfade > figure:nth-child(2) {
+  animation-delay: 10s;
+  background-image: url('https://raw.githubusercontent.com/smaslennikov/litter-controller/master/backgrounds/2.jpg');
+}
+
+.crossfade > figure:nth-child(3) {
+  animation-delay: 20s;
+  background-image: url('https://raw.githubusercontent.com/smaslennikov/litter-controller/master/backgrounds/3.jpg');
+}
+
+.crossfade > figure:nth-child(4) {
+  animation-delay: 30s;
+  background-image: url('https://raw.githubusercontent.com/smaslennikov/litter-controller/master/backgrounds/4.jpg');
+}
+
+.crossfade > figure:nth-child(5) {
+  animation-delay: 40s;
+  background-image: url('https://raw.githubusercontent.com/smaslennikov/litter-controller/master/backgrounds/5.jpg');
+}
+
+.crossfade > figure:nth-child(6) {
+  animation-delay: 50s;
+  background-image: url('https://raw.githubusercontent.com/smaslennikov/litter-controller/master/backgrounds/6.jpg');
+}
+
+@keyframes
+imageAnimation {  0% {
+ animation-timing-function: ease-in;
+ opacity: 0;
+}
+ 8% {
+ animation-timing-function: ease-out;
+ opacity: 1;
+}
+ 17% {
+ opacity: 1
+}
+ 25% {
+ opacity: 0
+}
+ 100% {
+ opacity: 0
+}
+}
