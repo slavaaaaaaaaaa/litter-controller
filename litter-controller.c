@@ -223,14 +223,15 @@ void checkButtonState() {
         dumpBox("Human cycled me");
 }
 
-void *waitForKitty(void *distance) {
+void *waitForKitty(void *_distance) {
     digitalWrite(waitingLed, HIGH);
 
-    char *message[16];
+    char message[16];
+    float *distance = (float *) _distance;
     print(9, "Compiling message to display, distance %.1f", *distance);
-    sprintf(*message, "Kitty:      %.1f", *((float *) distance));
+    sprintf(message, "Kitty:      %.1f", *distance);
     print(9, "Emptying box");
-    emptyBox(*message, poopingTime);
+    emptyBox(message, poopingTime);
 
     pthread_mutex_unlock(&kittyInside);
     pthread_exit(NULL);
