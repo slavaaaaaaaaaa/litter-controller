@@ -11,8 +11,7 @@ body {
   font:14px/1.5 "OpenSansRegular", "Helvetica Neue", Helvetica, Arial, sans-serif;
   color:#f0e7d5;
   font-weight: normal;
-  background: #252525;
-  background: linear-gradient(#2a2a29, #1c1c1c);
+  background: transparent;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -315,16 +314,17 @@ section {
   backface-visibility: hidden;
   background-size: cover;
   background-position: center center;
-  background-attachment: scroll;
-  background-repeat: repeat-y;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  position: absolute;
   color: #252525;
   height: 100%;
   left: 0px;
   opacity: 0;
-  position: absolute;
   top: 0px;
   width: 100%;
   z-index: 0;
+  padding-bottom: 1500px;
 }
 
 .crossfade > figure:nth-child(1) {
