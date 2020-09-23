@@ -49,6 +49,7 @@ static char *emptyLcdLine = "                ";
 static int lcdHandle;
 
 static bool kittyInside = FALSE;
+static float lastDistance;
 
 pthread_mutex_t motorLock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -59,7 +60,7 @@ static const char *const usage[] = {
 };
 
 void print(int level, const char *fmt, ...) {
-    if (level >= DEBUG) {
+    if (level <= DEBUG) {
         va_list args;
         va_start(args, fmt);
         vprintf(fmt, args);
@@ -224,12 +225,12 @@ void checkButtonState() {
         dumpBox("Human cycled me");
 }
 
-void *waitForKitty(void *distance) {
+void *waitForKitty(void *args) {
     digitalWrite(waitingLed, HIGH);
     kittyInside = TRUE;
 
     char *message[16];
-    sprintf(*message, "Kitty:      %.1f", *((float *) distance));
+    sprintf(*message, "Kitty:      %.1f", lastDistance);
     emptyBox(*message, poopingTime);
 
     kittyInside = FALSE;
@@ -239,16 +240,16 @@ void *waitForKitty(void *distance) {
 void checkSonicState() {
     time_t now;
     time(&now);
-    float distance = sonic();
+    lastDistance = sonic();
 
     if (DEBUG > 0)
-        print(9, "Current distance: %.1f", distance);
+        print(9, "Current distance: %.1f", lastDistance);
 
-    if (((distance > falseDistanceThreshold) || // if the distance is abnormally high, likely due to kitty sniffing the ultrasonic sensor...
-        (distance < kittyInsideDistance)) && // or if the distance is within limits, ...
+    if (((lastDistance > falseDistanceThreshold) || // if the distance is abnormally high, likely due to kitty sniffing the ultrasonic sensor...
+        (lastDistance < kittyInsideDistance)) && // or if the distance is within limits, ...
             ! kittyInside) { // while there's no known kitty inside
         pthread_t tid;
-        pthread_create(&tid, NULL, waitForKitty, (void *) &distance);
+        pthread_create(&tid, NULL, waitForKitty, NULL);
     }
 }
 
@@ -318,8 +319,8 @@ int main(int argc, const char **argv) {
         print(0, "Running in debug mode with lowered times!");
         poopingTime = 5;
         ccwTurnTime = 5;
-        cwTurnTime =  6;
-        dumpTime =    1;
+        cwTurnTime  = 8;
+        dumpTime    = 1;
     }
 
     wiringPiSetup();
