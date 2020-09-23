@@ -59,7 +59,7 @@ static const char *const usage[] = {
 };
 
 void print(int level, const char *fmt, ...) {
-    if (level >= DEBUG) {
+    if (level <= DEBUG) {
         va_list args;
         va_start(args, fmt);
         vprintf(fmt, args);
