@@ -41,7 +41,7 @@ static int falseDistanceThreshold = 400; // if too close to the sensor, it repor
 static int poopingTime =            120;
 static int ccwTurnTime =            55;
 static int cwTurnTime =             65;
-static int dumpTime =               8; // make this just too short to check sonic sensor clearance later
+static int dumpTime =               7; // make this just too short to check sonic sensor clearance later
 static int DEBUG =                  0;
 static char *VERSION =              "0.2.1";
 
@@ -150,7 +150,7 @@ void alignBox() {
             digitalWrite(counterclockwise, LOW); // and spin until we can see litter
             delay(1000);
         } else {
-            delay(5000); // give it an extra few seconds to align to center, then stop spinning
+            delay(4000); // give it an extra few seconds to align to center, then stop spinning
             digitalWrite(counterclockwise, HIGH);
             break;
         }
@@ -318,10 +318,10 @@ int main(int argc, const char **argv) {
         print(0, "Running in debug mode with lowered times!");
         poopingTime = 5;
         ccwTurnTime = 5;
-        cwTurnTime =  6;
-        dumpTime =    1;
+        cwTurnTime  = 8;
+        dumpTime    = 1;
     } else {
-        alignBox();
+        alignBox(); // don't align here so that we can start right away by setting off the sonic spin cycle
     }
 
     wiringPiSetup();
