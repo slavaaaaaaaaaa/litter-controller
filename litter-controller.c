@@ -43,7 +43,7 @@ static int ccwTurnTime =            55;
 static int cwTurnTime =             65;
 static int dumpTime =               7; // make this just too short to check sonic sensor clearance later
 static int DEBUG =                  0;
-static char *VERSION =              "0.2.1";
+static char *VERSION =              "0.2.2";
 
 static char *emptyLcdLine = "                ";
 static int lcdHandle;
@@ -318,16 +318,17 @@ int main(int argc, const char **argv) {
         print(0, "Running in debug mode with lowered times!");
         poopingTime = 5;
         ccwTurnTime = 5;
-        cwTurnTime  = 8;
-        dumpTime    = 1;
-    } else {
-        alignBox(); // don't align here so that we can start right away by setting off the sonic spin cycle
+        cwTurnTime =  8;
+        dumpTime =    1;
     }
 
     wiringPiSetup();
     lcdHandle = lcdSetup();
     setPins();
 
+    if (DEBUG <= 1) {
+        alignBox(); // don't align here so that we can start right away by setting off the sonic spin cycle
+    }
     lcdWrite(1, "litter control", VERSION);
 
     waitForEvents();
