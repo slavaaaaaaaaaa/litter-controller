@@ -1,2 +1,10 @@
+# binary
 .build
+
+# makefile includes
 include.mk
+
+# jekyll
+Gemfile
+Gemfile.lock
+_site/
