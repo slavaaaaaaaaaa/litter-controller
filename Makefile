@@ -33,6 +33,9 @@ service:
 	systemctl enable litter-controller.service
 	systemctl restart litter-controller.service
 
+rpi-config:
+	install config.txt /boot/
+
 uninstall:
 	$(RM) $(INSTALL_DIR)/$(OUT)
 
