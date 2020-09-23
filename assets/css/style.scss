@@ -11,7 +11,7 @@ body {
   font:14px/1.5 "OpenSansRegular", "Helvetica Neue", Helvetica, Arial, sans-serif;
   color:#f0e7d5;
   font-weight: normal;
-  background: transparent;
+  background: #252525;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -310,7 +310,7 @@ section {
 }
 
 .crossfade > figure {
-  animation: imageAnimation 60s linear infinite 0s;
+  animation: imageAnimation 36s linear infinite 0s;
   backface-visibility: hidden;
   background-size: cover;
   background-position: center center;
@@ -328,36 +328,35 @@ section {
 }
 
 .crossfade > figure:nth-child(1) {
-  background-image: url('https://raw.githubusercontent.com/smaslennikov/litter-controller/master/backgrounds/1.jpg');
+  background-image: url('../backgrounds/1.jpg');
 }
 
 .crossfade > figure:nth-child(2) {
-  animation-delay: 10s;
-  background-image: url('https://raw.githubusercontent.com/smaslennikov/litter-controller/master/backgrounds/2.jpg');
+  animation-delay: 6s;
+  background-image: url('../backgrounds/2.jpg');
 }
 
 .crossfade > figure:nth-child(3) {
-  animation-delay: 20s;
-  background-image: url('https://raw.githubusercontent.com/smaslennikov/litter-controller/master/backgrounds/3.jpg');
+  animation-delay: 12s;
+  background-image: url('../backgrounds/3.jpg');
 }
 
 .crossfade > figure:nth-child(4) {
-  animation-delay: 30s;
-  background-image: url('https://raw.githubusercontent.com/smaslennikov/litter-controller/master/backgrounds/4.jpg');
+  animation-delay: 18s;
+  background-image: url('../backgrounds/4.jpg');
 }
 
 .crossfade > figure:nth-child(5) {
-  animation-delay: 40s;
-  background-image: url('https://raw.githubusercontent.com/smaslennikov/litter-controller/master/backgrounds/5.jpg');
+  animation-delay: 24s;
+  background-image: url('../backgrounds/5.jpg');
 }
 
 .crossfade > figure:nth-child(6) {
-  animation-delay: 50s;
-  background-image: url('https://raw.githubusercontent.com/smaslennikov/litter-controller/master/backgrounds/6.jpg');
+  animation-delay: 30s;
+  background-image: url('../backgrounds/6.jpg');
 }
 
-@keyframes
-imageAnimation {
+@keyframes imageAnimation {
   0% {
     animation-timing-function: ease-in;
     opacity: 0;
@@ -367,12 +366,12 @@ imageAnimation {
     opacity: 1;
   }
   17% {
-    opacity: 1
+    opacity: 1;
   }
   25% {
-    opacity: 0
+    opacity: 0;
   }
   100% {
-    opacity: 0
+    opacity: 0;
   }
 }
