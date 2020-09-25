@@ -10,6 +10,7 @@ Spin the feces for the good of the kitties
 - [Items used](#items-used)
 - [Hardware layouts](#hardware-layouts)
 - [Status](#status)
+- [Cats involved](#cats-involved)
 - [Licensing](#licensing)
 
 <!-- tocstop -->
