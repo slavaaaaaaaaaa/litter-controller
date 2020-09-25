@@ -71,9 +71,15 @@ Total | | 286$
 
 TODO
 
+For now, the closest thing I have is a [crude drawing](assets/project-pictures/03.jpg).
+
 ## Status
 
-This code is relatively stable, the hardware is finished, installed and is in use at home. So, basically, I run this in production.
+This code is relatively stable, the hardware is finished, installed and is in use at home. So, basically, I run this in production, [here's proof](project-pictures)!
+
+## Cats involved
+
+A fat [Felix](cat-pictures) and a less prone to pose for pictures, tiny Takkun.
 
 ## Licensing
 
