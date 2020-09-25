@@ -76,12 +76,12 @@ strong {
 }
 
 .wrapper {
-  max-width:650px;
+  max-width:80%;
   margin:0 auto;
   position:relative;
   padding: 0 20px;
   background-color: #252525;
-  opacity: .8;
+  opacity: .85;
 }
 
 section img {
@@ -227,7 +227,7 @@ dt {
 }
 
 section {
-  max-width:650px;
+  max-width:100%;
   padding: 30px 0px 50px 0px;
   margin: 20px 0;
   margin-top: 70px;
@@ -374,4 +374,19 @@ section {
   100% {
     opacity: 0;
   }
+}
+
+ul.images {
+  overflow: auto;
+  list-style:none;
+  padding: 5px 10px;
+  border:0px;
+  opacity: 1;
+}
+
+.images li {
+  list-style:none;
+  float:left;
+  padding: 5px 5px;
+  opacity: 1;
 }

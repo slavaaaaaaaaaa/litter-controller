@@ -1,0 +1,13 @@
+---
+layout: default
+---
+
+<ul class="images">
+  {% for image in site.static_files %}
+    {% if image.path contains page.path %}
+      <li><a href="{{ image.path }}"><img src="{{ image.path }}" height={{ page.height }}></a></li>
+    {% endif %}
+  {% endfor %}
+</ul>
+
+<br />
