@@ -149,9 +149,8 @@ void alignBox() {
             (distance < kittyInsideDistance)) { // or if it's actually too low
             digitalWrite(clockwise, HIGH); // make sure the other switch is properly set
             digitalWrite(counterclockwise, LOW); // and spin until we can see litter
-            delay(1000);
+            delay(3000);
         } else {
-            delay(4000); // give it an extra few seconds to align to center, then stop spinning
             digitalWrite(counterclockwise, HIGH);
             break;
         }
