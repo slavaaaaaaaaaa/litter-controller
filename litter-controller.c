@@ -277,9 +277,13 @@ void setPins() {
     pinMode(echo,               INPUT);
     pinMode(trig,               OUTPUT);
 
+    digitalWrite(emptyingLed,       HIGH);
     digitalWrite(emptyingLed,       LOW);
+    digitalWrite(waitingLed,        HIGH);
     digitalWrite(waitingLed,        LOW);
+    digitalWrite(dumpingLed,        HIGH);
     digitalWrite(dumpingLed,        LOW);
+    digitalWrite(errorLed,          HIGH);
     digitalWrite(errorLed,          LOW);
 
     digitalWrite(clockwise,         HIGH);
