@@ -37,7 +37,7 @@ static int trig =                   2;
 static int echo =                   1;
 static int lcdWidth =               16;
 static int emptyDistance =          45;
-static int kittyInsideDistance =    35;
+static int kittyInsideDistance =    40;
 static int falseDistanceThreshold = 400; // if too close to the sensor, it reports ~2300. This is a safe number I guess
 static int poopingTime =            180;
 static int ccwTurnTime =            55;
@@ -199,7 +199,6 @@ void emptyBox(char *source, int delaySeconds) {
     int err = pthread_mutex_trylock(&motorLock);
     if (err == 0) {
         digitalWrite(emptyingLed, HIGH);
-        digitalWrite(waitingLed, LOW);
 
         turnOnRelay(counterclockwise, ccwTurnTime);
         delay(1000);
@@ -209,6 +208,7 @@ void emptyBox(char *source, int delaySeconds) {
 
         alignBox();
 
+        digitalWrite(waitingLed, LOW);
         digitalWrite(emptyingLed, LOW);
         pthread_mutex_unlock(&motorLock);
     } else {
@@ -230,7 +230,7 @@ void *waitForKitty(void *_distance) {
     char message[16];
     float *distance = (float *) _distance;
     print(9, "Compiling message to display, distance %.1f", *distance);
-    sprintf(message, "Kitty:      %.1f", *distance);
+    sprintf(message, "Kitty: %.1f", *distance);
     print(9, "Emptying box");
     emptyBox(message, poopingTime);
 
