@@ -277,13 +277,18 @@ void setPins() {
     pinMode(echo,               INPUT);
     pinMode(trig,               OUTPUT);
 
+    // light up the LEDs to show we're on!
     digitalWrite(emptyingLed,       HIGH);
+    delay(300);
     digitalWrite(emptyingLed,       LOW);
     digitalWrite(waitingLed,        HIGH);
+    delay(300);
     digitalWrite(waitingLed,        LOW);
     digitalWrite(dumpingLed,        HIGH);
+    delay(300);
     digitalWrite(dumpingLed,        LOW);
     digitalWrite(errorLed,          HIGH);
+    delay(300);
     digitalWrite(errorLed,          LOW);
 
     digitalWrite(clockwise,         HIGH);
