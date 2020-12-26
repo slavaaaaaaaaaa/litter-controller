@@ -153,6 +153,7 @@ void alignBox() {
             delay(3000);
         } else {
             digitalWrite(counterclockwise, HIGH);
+            delay(1000);
             break;
         }
     }
