@@ -138,6 +138,7 @@ void turnOnRelay(int direction, int seconds) {
     digitalWrite(direction, LOW);
     delay((seconds * 1000));
     digitalWrite(direction, HIGH);
+    delay(500);
 }
 
 // check that we've spun enough to clear the sonic sensor
