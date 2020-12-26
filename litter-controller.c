@@ -138,7 +138,7 @@ void turnOnRelay(int direction, int seconds) {
     digitalWrite(direction, LOW);
     delay((seconds * 1000));
     digitalWrite(direction, HIGH);
-    delay(500);
+    delay(1000);
 }
 
 // check that we've spun enough to clear the sonic sensor
@@ -174,7 +174,6 @@ void dumpBox(char *source) {
         digitalWrite(waitingLed, LOW);
 
         turnOnRelay(clockwise, dumpTime);
-        delay(2000);
         turnOnRelay(counterclockwise, dumpTime);
 
         alignBox();
@@ -202,9 +201,7 @@ void emptyBox(char *source, int delaySeconds) {
         digitalWrite(emptyingLed, HIGH);
 
         turnOnRelay(counterclockwise, ccwTurnTime);
-        delay(1000);
         turnOnRelay(clockwise, cwTurnTime);
-        delay(1000);
         turnOnRelay(counterclockwise, dumpTime);
 
         alignBox();
