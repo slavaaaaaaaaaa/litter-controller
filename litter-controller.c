@@ -36,8 +36,8 @@ static int counterclockwise =       6;
 static int trig =                   2;
 static int echo =                   1;
 static int lcdWidth =               16;
-static int emptyDistance =          45;
-static int kittyInsideDistance =    40;
+static int emptyDistance =          35;
+static int kittyInsideDistance =    30;
 static int falseDistanceThreshold = 400; // if too close to the sensor, it reports ~2300. This is a safe number I guess
 static int poopingTime =            180;
 static int ccwTurnTime =            55;
@@ -335,9 +335,7 @@ int main(int argc, const char **argv) {
     lcdHandle = lcdSetup();
     setPins();
 
-    if (DEBUG <= 1) {
-        alignBox(); // don't align here so that we can start right away by setting off the sonic spin cycle
-    }
+    alignBox();
     lcdWrite(1, "litter control", VERSION);
 
     waitForEvents();
