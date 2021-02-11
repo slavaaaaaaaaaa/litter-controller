@@ -37,14 +37,14 @@ static int trig =                   2;
 static int echo =                   1;
 static int lcdWidth =               16;
 static int emptyDistance =          35;
-static int kittyInsideDistance =    30;
+static int kittyInsideDistance =    10;
 static int falseDistanceThreshold = 400; // if too close to the sensor, it reports ~2300. This is a safe number I guess
 static int poopingTime =            180;
 static int ccwTurnTime =            55;
 static int cwTurnTime =             65;
 static int dumpTime =               7; // TODO: make this just too short to check sonic sensor clearance later
 static int DEBUG =                  0;
-static char *VERSION =              "0.2.3";
+static char *VERSION =              "0.3.0";
 
 static char *emptyLcdLine = "                ";
 static int lcdHandle;
