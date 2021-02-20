@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <sys/time.h>
+#include <time.h>
 
-#include <pthread.h>
 #include <signal.h>
 #include <string.h>
 #include <stdbool.h>
@@ -44,13 +44,10 @@ static int ccwTurnTime =            55;
 static int cwTurnTime =             65;
 static int dumpTime =               7; // TODO: make this just too short to check sonic sensor clearance later
 static int DEBUG =                  0;
-static char *VERSION =              "0.3.0";
+static char *VERSION =              "0.4.0";
 
 static char *emptyLcdLine = "                ";
 static int lcdHandle;
-
-atomic_bool kittyInside = FALSE;
-pthread_mutex_t motorLock = PTHREAD_MUTEX_INITIALIZER;
 
 static const char *const usage[] = {
     "litter-controller [options] [[--] args]",
@@ -164,26 +161,19 @@ void dumpBox(char *source) {
     time(&now);
     print(0, "'%s' called to dump box at %s", source, ctime(&now));
 
-    int err = pthread_mutex_trylock(&motorLock);
-    if (err == 0) {
-        struct tm *time = localtime(&now);
-        char buffer[26];
-        strftime(buffer, 26, "%a %H:%M", time);
-        lcdWrite(1, "Litter dumped", buffer);
+    struct tm *time = localtime(&now);
+    char buffer[26];
+    strftime(buffer, 26, "%a %H:%M", time);
+    lcdWrite(1, "Litter dumped", buffer);
 
-        digitalWrite(dumpingLed, HIGH);
-        digitalWrite(waitingLed, LOW);
+    digitalWrite(dumpingLed, HIGH);
+    digitalWrite(waitingLed, LOW);
 
-        turnOnRelay(clockwise, dumpTime);
-        turnOnRelay(counterclockwise, dumpTime);
+    turnOnRelay(clockwise, dumpTime);
+    turnOnRelay(counterclockwise, dumpTime);
 
-        alignBox();
-
-        digitalWrite(dumpingLed, LOW);
-        pthread_mutex_unlock(&motorLock);
-    } else {
-        print(0, "Motor already in use, '%s' trigger to dump ignored due to %d!", source, err);
-    }
+    alignBox();
+    digitalWrite(dumpingLed, LOW);
 }
 
 void emptyBox(char *source, int delaySeconds) {
@@ -197,22 +187,16 @@ void emptyBox(char *source, int delaySeconds) {
     print(0, "'%s' called to empty box. Delaying %is", source, delaySeconds);
     delay((delaySeconds * 1000));
 
-    int err = pthread_mutex_trylock(&motorLock);
-    if (err == 0) {
-        digitalWrite(emptyingLed, HIGH);
+    digitalWrite(emptyingLed, HIGH);
 
-        turnOnRelay(counterclockwise, ccwTurnTime);
-        turnOnRelay(clockwise, cwTurnTime);
-        turnOnRelay(counterclockwise, dumpTime);
+    turnOnRelay(counterclockwise, ccwTurnTime);
+    turnOnRelay(clockwise, cwTurnTime);
+    turnOnRelay(counterclockwise, dumpTime);
 
-        alignBox();
+    alignBox();
 
-        digitalWrite(waitingLed, LOW);
-        digitalWrite(emptyingLed, LOW);
-        pthread_mutex_unlock(&motorLock);
-    } else {
-        print(0, "Motor already in use, '%s' trigger to empty ignored due to %d!", source, err);
-    }
+    digitalWrite(waitingLed, LOW);
+    digitalWrite(emptyingLed, LOW);
 }
 
 void checkButtonState() {
@@ -222,19 +206,14 @@ void checkButtonState() {
         dumpBox("Human cycled me");
 }
 
-void *waitForKitty(void *_distance) {
-    kittyInside = TRUE;
+void *waitForKitty(float distance) {
     digitalWrite(waitingLed, HIGH);
 
     char message[16];
-    float *distance = (float *) _distance;
-    print(9, "Compiling message to display, distance %.1f", *distance);
-    sprintf(message, "Kitty: %.1f", *distance);
+    print(9, "Compiling message to display, distance %.1f", distance);
+    sprintf(message, "Kitty: %.1f", distance);
     print(9, "Emptying box");
     emptyBox(message, poopingTime);
-
-    kittyInside = FALSE;
-    pthread_exit(NULL);
 }
 
 void checkSonicState() {
@@ -244,11 +223,8 @@ void checkSonicState() {
         print(8, "Current distance: %.1f", distance);
 
     if (((distance > falseDistanceThreshold) || // if the distance is abnormally high, likely due to kitty sniffing the ultrasonic sensor...
-        (distance < kittyInsideDistance)) && // or if the distance is within limits, ...
-            ! kittyInside) { // while there's no known kitty inside
-        pthread_t tid;
-        print(9, "Splitting off into a waiting thread");
-        pthread_create(&tid, NULL, waitForKitty, (void *) &distance);
+        (distance < kittyInsideDistance))) { // or if the distance is within limits, ...
+        waitForKitty(distance);
     }
 }
 
